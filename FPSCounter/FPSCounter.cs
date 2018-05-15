@@ -1,5 +1,9 @@
 ﻿using BepInEx;
+using System;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace FPSCounter
 {
@@ -13,14 +17,12 @@ namespace FPSCounter
         private float lastAvg;
         private float minFps, maxFps;
 
-        private bool showFps;
-
         private Rect screenRect;
         private GUIStyle style = new GUIStyle();
 
         private void OnGUI()
         {
-            if (!showFps) return;
+            if (currentState == State.Hidden) return;
 
             float msec = deltaTime * 1000.0f;
             float fps = 1.0f / deltaTime;
@@ -31,6 +33,10 @@ namespace FPSCounter
             if (fps > maxFps) maxFps = fps;
 
             string text = string.Format("{1:0.} FPS, {0:0.0}ms\nAvg: {2:0.}, Min: {3:0.}, Max: {4:0.}", msec, fps, lastAvg, minFps, maxFps);
+
+            if (initial)
+                text += "\nPress U to toggle/reset the counters.\nMade by MarC0";
+
             GUI.Label(screenRect, text, style);
         }
 
@@ -45,32 +51,115 @@ namespace FPSCounter
 
             style.fontSize = h / 50;
 
-            BepInLogger.Log($"FPS Counter {(showFps ? "enabled" : "disabled")}. Screen size: {w}x{h}px");
+            if (currentState == State.Normal)
+                style.normal.textColor = Color.black;
+            else if (currentState == State.NormalWhite)
+                style.normal.textColor = Color.white;
+        }
+
+        private static readonly string ConfigFileLocation;
+
+        static FPSCounter()
+        {
+            ConfigFileLocation = Assembly.GetExecutingAssembly().Location + ".config";
         }
 
         private void Start()
         {
             style.alignment = TextAnchor.UpperLeft;
-            style.normal.textColor = Color.white;
 
-            if (showFps)
-                ResetValues();
+            LoadConfig();
+
+            ResetValues();
+
+            if (initial)
+                StartCoroutine(HideKeybindInfo());
+
+            SceneManager.sceneLoaded += OnLevelFinishedLoading;
+        }
+
+        private void OnLevelFinishedLoading(Scene sc, LoadSceneMode mode)
+        {
+            ResetValues();
+        }
+
+        private bool initial;
+
+        private System.Collections.IEnumerator HideKeybindInfo()
+        {
+            yield return new WaitForSecondsRealtime(15);
+
+            initial = false;
+        }
+
+        private void LoadConfig()
+        {
+            if (File.Exists(ConfigFileLocation))
+            {
+                initial = false;
+                try
+                {
+                    currentState = (State)int.Parse(File.ReadAllText(ConfigFileLocation));
+                }
+                catch (Exception ex)
+                {
+                    BepInLogger.Log("Failed to load FPSCounter config: " + ex.Message);
+                }
+            }
+            else
+            {
+                initial = true;
+            }
+        }
+
+        State currentState = State.Normal;
+
+        private enum State
+        {
+            Hidden,
+            Normal,
+            NormalWhite,
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Equals))
+            if (Input.GetKeyDown(KeyCode.U))
             {
-                showFps = !showFps;
+                currentState = currentState.Next();
+                initial = false;
+
                 ResetValues();
-                Manager.Game.Instance.Player.hentai = 100;
-                Manager.Game.Instance.Player.intellect = 100;
-                Manager.Game.Instance.Player.physical = 100;
+
+                SaveConfig();
             }
 
-            if (!showFps) return;
+            if (currentState == State.Hidden) return;
 
             deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+        }
+
+        private void SaveConfig()
+        {
+            try
+            {
+                File.WriteAllText(ConfigFileLocation, ((int)currentState).ToString());
+            }
+            catch (Exception ex)
+            {
+                BepInLogger.Log("Failed to save FPSCounter config: " + ex.Message);
+            }
+        }
+    }
+
+    public static class Extensions
+    {
+        public static T Next<T>(this T src) where T : struct
+        {
+            if (!typeof(T).IsEnum) throw new ArgumentException(String.Format("Argumnent {0} is not an Enum", typeof(T).FullName));
+
+            T[] Arr = (T[])Enum.GetValues(src.GetType());
+            int j = Array.IndexOf<T>(Arr, src) + 1;
+            return (Arr.Length == j) ? Arr[0] : Arr[j];
         }
     }
 }
