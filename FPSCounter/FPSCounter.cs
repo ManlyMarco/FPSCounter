@@ -13,9 +13,8 @@ namespace FPSCounter
         public SavedKeyboardShortcut ShowCounter { get; }
 
         public ConfigWrapper<TextAnchor> Position { get; }
-        private ConfigWrapper<State> CurrentState { get; }
-
-        private State lastState;
+        private ConfigWrapper<CounterColors> CounterColor { get; }
+        private ConfigWrapper<bool> Shown { get; }
 
         private float deltaTime;
         private float lastAvg;
@@ -26,21 +25,21 @@ namespace FPSCounter
 
         public FPSCounter()
         {
-            ShowCounter = new SavedKeyboardShortcut("Toggle FPS counter", this, new KeyboardShortcut(KeyCode.U, false, false, true));
-            Position = new ConfigWrapper<TextAnchor>("Counter screen position", this, TextAnchor.LowerLeft);
-            CurrentState = new ConfigWrapper<State>("State of the counter", this, State.VisibleWhite);
+            ShowCounter = new SavedKeyboardShortcut("Toggle counter and reset stats", this, new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
+            Position = new ConfigWrapper<TextAnchor>("Screen position", this, TextAnchor.LowerLeft);
+            Shown = new ConfigWrapper<bool>("!Display the counter", this, false);
+            CounterColor = new ConfigWrapper<CounterColors>("Color of the text", this, CounterColors.White);
         }
 
-        private enum State
+        private enum CounterColors
         {
-            Hidden,
-            VisibleWhite,
-            VisibleBlack,
+            White,
+            Black
         }
 
         private void OnGUI()
         {
-            if (CurrentState.Value == State.Hidden) return;
+            if (!Shown.Value) return;
 
             float msec = deltaTime * 1000.0f;
             float fps = 1.0f / deltaTime;
@@ -65,16 +64,6 @@ namespace FPSCounter
             minFps = float.MaxValue;
             maxFps = 0;
             lastAvg = 0;
-
-            int w = Screen.width, h = Screen.height;
-            screenRect = new Rect(screenOffset, screenOffset, w - screenOffset * 2, h - screenOffset * 2);
-
-            style.fontSize = h / 50;
-
-            if (CurrentState.Value == State.VisibleBlack)
-                style.normal.textColor = Color.black;
-            else if (CurrentState.Value == State.VisibleWhite)
-                style.normal.textColor = Color.white;
         }
 
         private void Start()
@@ -88,22 +77,43 @@ namespace FPSCounter
         {
             if (ShowCounter.IsDown())
             {
-                lastState = CurrentState.Value.Next();
-                CurrentState.Value = lastState;
-            }
+                if (!Shown.Value)
+                {
+                    CounterColor.Value = CounterColors.White;
+                    Shown.Value = true;
+                }
+                else if (CounterColor.Value == CounterColors.White)
+                    CounterColor.Value = CounterColors.Black;
+                else
+                    Shown.Value = false;
 
-            var state = CurrentState.Value;
-
-            if (state != lastState)
-            {
                 ResetValues();
-                lastState = state;
             }
 
-            if (state == State.Hidden) return;
+            if (!Shown.Value) return;
+
+            UpdateLooks();
 
             style.alignment = Position.Value;
             deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+        }
+
+        private void UpdateLooks()
+        {
+            int w = Screen.width, h = Screen.height;
+            screenRect = new Rect(screenOffset, screenOffset, w - screenOffset * 2, h - screenOffset * 2);
+
+            style.fontSize = h / 50;
+
+            switch (CounterColor.Value)
+            {
+                case CounterColors.White:
+                    style.normal.textColor = Color.white;
+                    break;
+                case CounterColors.Black:
+                    style.normal.textColor = Color.black;
+                    break;
+            }
         }
     }
 }
