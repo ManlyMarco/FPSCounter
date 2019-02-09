@@ -4,9 +4,10 @@ using UnityEngine.SceneManagement;
 
 namespace FPSCounter
 {
-    [BepInPlugin("MarC0.FPSCounter", "FPS Counter", "1.3")]
+    [BepInPlugin("MarC0.FPSCounter", "FPS Counter", Version)]
     public class FpsCounter : BaseUnityPlugin
     {
+        internal const string Version = "1.3";
         private readonly float _avgFraction = 0.994f;
         private readonly int _screenOffset = 20;
         private readonly GUIStyle _style = new GUIStyle();
