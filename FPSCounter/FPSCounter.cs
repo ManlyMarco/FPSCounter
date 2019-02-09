@@ -48,7 +48,12 @@ namespace FPSCounter
             lastAvg = avgFraction * lastAvg + (1 - avgFraction) * fps;
 
             if (fps < minFps) minFps = fps;
-            if (fps > maxFps) maxFps = fps;
+            if (fps > maxFps)
+            {
+                maxFps = fps;
+                // Prevent scene loading etc from bogging the framerate down
+                minFps = fps;
+            }
 
             string text = string.Format("{1:0.} FPS, {0:0.0}ms\nAvg: {2:0.}, Min: {3:0.}, Max: {4:0.}", msec, fps, lastAvg, minFps, maxFps);
 
@@ -108,12 +113,11 @@ namespace FPSCounter
                 ResetValues();
             }
 
-            if (!Shown.Value) return;
-
-            UpdateLooks();
-
-            style.alignment = Position.Value;
-            deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+            if (Shown.Value)
+            {
+                UpdateLooks();
+                deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+            }
         }
 
         private void UpdateLooks()
@@ -121,6 +125,7 @@ namespace FPSCounter
             int w = Screen.width, h = Screen.height;
             screenRect = new Rect(screenOffset, screenOffset, w - screenOffset * 2, h - screenOffset * 2);
 
+            style.alignment = Position.Value;
             style.fontSize = h / 50;
         }
     }
