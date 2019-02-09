@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 
 namespace FPSCounter
 {
-    [BepInPlugin("MarC0.FPSCounter", "FPS Counter", "1.2")]
+    [BepInPlugin("MarC0.FPSCounter", "FPS Counter", "1.3")]
     public class FpsCounter : BaseUnityPlugin
     {
         private readonly float _avgFraction = 0.994f;
