@@ -32,6 +32,7 @@
     <CodeAnalysisRuleSet>FPSCounter.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="CounterColors.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="FPSCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

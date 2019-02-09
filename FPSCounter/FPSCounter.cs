@@ -5,25 +5,24 @@ using UnityEngine.SceneManagement;
 namespace FPSCounter
 {
     [BepInPlugin("MarC0.FPSCounter", "FPS Counter", "1.2")]
-    public class FPSCounter : BaseUnityPlugin
+    public class FpsCounter : BaseUnityPlugin
     {
-        private readonly float avgFraction = 0.994f;
-        private readonly int screenOffset = 20;
+        private readonly float _avgFraction = 0.994f;
+        private readonly int _screenOffset = 20;
+        private readonly GUIStyle _style = new GUIStyle();
+
+        private Rect _screenRect;
+
+        private float _deltaTime;
+        private float _lastAvg;
+        private float _minFps, _maxFps;
 
         public SavedKeyboardShortcut ShowCounter { get; }
-
+        public ConfigWrapper<CounterColors> CounterColor { get; }
         public ConfigWrapper<TextAnchor> Position { get; }
-        private ConfigWrapper<CounterColors> CounterColor { get; }
-        private ConfigWrapper<bool> Shown { get; }
+        public ConfigWrapper<bool> Shown { get; }
 
-        private float deltaTime;
-        private float lastAvg;
-        private float minFps, maxFps;
-
-        private Rect screenRect;
-        private GUIStyle style = new GUIStyle();
-
-        public FPSCounter()
+        public FpsCounter()
         {
             ShowCounter = new SavedKeyboardShortcut("Toggle counter and reset stats", this, new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
             Position = new ConfigWrapper<TextAnchor>("Screen position", this, TextAnchor.LowerLeft);
@@ -31,46 +30,39 @@ namespace FPSCounter
             CounterColor = new ConfigWrapper<CounterColors>("Color of the text", this, CounterColors.White);
         }
 
-        private enum CounterColors
-        {
-            White,
-            Black,
-            Outline
-        }
-
         private void OnGUI()
         {
             if (!Shown.Value) return;
 
-            float msec = deltaTime * 1000.0f;
-            float fps = 1.0f / deltaTime;
+            var msec = _deltaTime * 1000.0f;
+            var fps = 1.0f / _deltaTime;
 
-            lastAvg = avgFraction * lastAvg + (1 - avgFraction) * fps;
+            _lastAvg = _avgFraction * _lastAvg + (1 - _avgFraction) * fps;
 
-            if (fps < minFps) minFps = fps;
-            if (fps > maxFps)
+            if (fps < _minFps) _minFps = fps;
+            if (fps > _maxFps)
             {
-                maxFps = fps;
+                _maxFps = fps;
                 // Prevent scene loading etc from bogging the framerate down
-                minFps = fps;
+                _minFps = fps;
             }
 
-            string text = string.Format("{1:0.} FPS, {0:0.0}ms\nAvg: {2:0.}, Min: {3:0.}, Max: {4:0.}", msec, fps, lastAvg, minFps, maxFps);
+            var text = string.Format("{1:0.} FPS, {0:0.0}ms\nAvg: {2:0.}, Min: {3:0.}, Max: {4:0.}", msec, fps, _lastAvg, _minFps, _maxFps);
 
             switch (CounterColor.Value)
             {
                 case CounterColors.Outline:
-                    ShadowAndOutline.DrawOutline(screenRect, text, style, Color.black, Color.white, 1);
+                    ShadowAndOutline.DrawOutline(_screenRect, text, _style, Color.black, Color.white, 1);
                     break;
 
                 case CounterColors.White:
-                    style.normal.textColor = Color.white;
+                    _style.normal.textColor = Color.white;
                     goto default;
                 case CounterColors.Black:
-                    style.normal.textColor = Color.black;
+                    _style.normal.textColor = Color.black;
                     goto default;
                 default:
-                    GUI.Label(screenRect, text, style);
+                    GUI.Label(_screenRect, text, _style);
                     break;
             }
         }
@@ -82,9 +74,9 @@ namespace FPSCounter
 
         private void ResetValues()
         {
-            minFps = float.MaxValue;
-            maxFps = 0;
-            lastAvg = 0;
+            _minFps = float.MaxValue;
+            _maxFps = 0;
+            _lastAvg = 0;
         }
 
         private void Start()
@@ -116,17 +108,17 @@ namespace FPSCounter
             if (Shown.Value)
             {
                 UpdateLooks();
-                deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
+                _deltaTime += (Time.unscaledDeltaTime - _deltaTime) * 0.1f;
             }
         }
 
         private void UpdateLooks()
         {
             int w = Screen.width, h = Screen.height;
-            screenRect = new Rect(screenOffset, screenOffset, w - screenOffset * 2, h - screenOffset * 2);
+            _screenRect = new Rect(_screenOffset, _screenOffset, w - _screenOffset * 2, h - _screenOffset * 2);
 
-            style.alignment = Position.Value;
-            style.fontSize = h / 50;
+            _style.alignment = Position.Value;
+            _style.fontSize = h / 50;
         }
     }
 }
