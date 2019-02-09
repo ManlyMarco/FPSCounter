@@ -34,7 +34,8 @@ namespace FPSCounter
         private enum CounterColors
         {
             White,
-            Black
+            Black,
+            Outline
         }
 
         private void OnGUI()
@@ -51,7 +52,22 @@ namespace FPSCounter
 
             string text = string.Format("{1:0.} FPS, {0:0.0}ms\nAvg: {2:0.}, Min: {3:0.}, Max: {4:0.}", msec, fps, lastAvg, minFps, maxFps);
 
-            GUI.Label(screenRect, text, style);
+            switch (CounterColor.Value)
+            {
+                case CounterColors.Outline:
+                    ShadowAndOutline.DrawOutline(screenRect, text, style, Color.black, Color.white, 1);
+                    break;
+
+                case CounterColors.White:
+                    style.normal.textColor = Color.white;
+                    goto default;
+                case CounterColors.Black:
+                    style.normal.textColor = Color.black;
+                    goto default;
+                default:
+                    GUI.Label(screenRect, text, style);
+                    break;
+            }
         }
 
         private void OnLevelFinishedLoading(Scene sc, LoadSceneMode mode)
@@ -79,9 +95,11 @@ namespace FPSCounter
             {
                 if (!Shown.Value)
                 {
-                    CounterColor.Value = CounterColors.White;
+                    CounterColor.Value = CounterColors.Outline;
                     Shown.Value = true;
                 }
+                else if (CounterColor.Value == CounterColors.Outline)
+                    CounterColor.Value = CounterColors.White;
                 else if (CounterColor.Value == CounterColors.White)
                     CounterColor.Value = CounterColors.Black;
                 else
@@ -104,16 +122,6 @@ namespace FPSCounter
             screenRect = new Rect(screenOffset, screenOffset, w - screenOffset * 2, h - screenOffset * 2);
 
             style.fontSize = h / 50;
-
-            switch (CounterColor.Value)
-            {
-                case CounterColors.White:
-                    style.normal.textColor = Color.white;
-                    break;
-                case CounterColors.Black:
-                    style.normal.textColor = Color.black;
-                    break;
-            }
         }
     }
 }

@@ -35,6 +35,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="FPSCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShadowAndOutline.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
@@ -48,6 +49,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Games\Koikatsu\BepInEx\ConfigurationManager.dll</HintPath>
     </Reference>
+    <Reference Include="System" />
     <Reference Include="UnityEngine">
       <HintPath>..\Libs\UnityEngine.dll</HintPath>
       <Private>False</Private>
