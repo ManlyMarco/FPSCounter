@@ -52,7 +52,7 @@ namespace FPSCounter
             switch (CounterColor.Value)
             {
                 case CounterColors.Outline:
-                    ShadowAndOutline.DrawOutline(_screenRect, text, _style, Color.black, Color.white, 1);
+                    ShadowAndOutline.DrawOutline(_screenRect, text, _style, Color.black, Color.white, 1.5f);
                     break;
 
                 case CounterColors.White:
