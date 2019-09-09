@@ -8,7 +8,7 @@ using FPSCounter;
 [assembly: AssemblyTitle("FPSCounter")]
 [assembly: AssemblyDescription("BepInEx plugin that shows FPS stats")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("MarC0")]
+[assembly: AssemblyCompany("ManlyMarco")]
 [assembly: AssemblyProduct("FPSCounter")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 
@@ -31,4 +31,4 @@ using FPSCounter;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion(FpsCounter.Version)]
+[assembly: AssemblyFileVersion(FrameCounter.Version)]
