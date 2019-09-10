@@ -207,10 +207,24 @@ namespace FPSCounter
                     _stopwatchFrame.Reset();
                     _stopwatchFrame.Start();
 
-                    // Calculate only once at the end so the GUI is faster and has all data from the same frame
-                    var frameTimeScaled = _frameTime.GetAverage() / _nanosecPerTick;
+                    // Calculate only once at end of frame so all data is from a single frame
+                    var avgFrame = _frameTime.GetAverage();
+                    var avgFixed = _fixedUpdateTime.GetAverage();
+                    var avgUpdate = _updateTime.GetAverage();
+                    var avgYield = _yieldTime.GetAverage();
+                    var avgLate = _lateUpdateTime.GetAverage();
+                    var avgRender = _renderTime.GetAverage();
+                    var avgGui = _onGuiTime.GetAverage();
+
+                    var frameTimeScaled = avgFrame / _nanosecPerTick;
+                    var fps = 1000000f / frameTimeScaled;
+
+                    var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
+                    var otherTicks = avgFrame - totalCapturedTicks;
+
                     var msScale = 1f / (_nanosecPerTick * 1000f);
-                    _outputText = $"{1000000f / frameTimeScaled:0.0} FPS, {_frameTime.GetAverage() * msScale,5:0.00}ms\nFixed: {_fixedUpdateTime.GetAverage() * msScale,5:0.00}ms\nUpdate: {_updateTime.GetAverage() * msScale,5:0.00}ms\nYield/anim: {_yieldTime.GetAverage() * msScale,5:0.00}ms\nLate: {_lateUpdateTime.GetAverage() * msScale,5:0.00}ms\nRender: {_renderTime.GetAverage() * msScale,5:0.00}ms\nOnGUI: {_onGuiTime.GetAverage() * msScale,5:0.00}ms";
+
+                    _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.00}ms\nFixed: {avgFixed * msScale,5:0.00}ms\nUpdate: {avgUpdate * msScale,5:0.00}ms\nYield/anim: {avgYield * msScale,5:0.00}ms\nLate: {avgLate * msScale,5:0.00}ms\nRender/VSync: {avgRender * msScale,5:0.00}ms\nOnGUI: {avgGui * msScale,5:0.00}ms\nOther: {otherTicks * msScale,5:0.00}ms";
                 }
             }
 
