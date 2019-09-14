@@ -22,7 +22,7 @@ namespace FPSCounter
 
         public static string StringOutput { get; private set; }
 
-        public static void Start(MonoBehaviour mb)
+        public static void Start(MonoBehaviour mb, BaseUnityPlugin thisPlugin)
         {
             if (_running) return;
             _running = true;
@@ -35,7 +35,7 @@ namespace FPSCounter
             // Hook unity event methods on all plugins
             var baseType = typeof(MonoBehaviour);
             var unityMethods = new[] { "FixedUpdate", "Update", "LateUpdate", "OnGUI" };
-            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null))
+            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null && x != thisPlugin))
             {
                 var timer = new Stopwatch();
 
@@ -83,6 +83,8 @@ namespace FPSCounter
             _averages.Clear();
 
             _stopAction();
+
+            StringOutput = null;
         }
 
         private static IEnumerator CollectLoop()
@@ -116,7 +118,10 @@ namespace FPSCounter
                     .Take(5)
                     .ToList();
 
-                StringOutput = string.Join(" | ", toShow.Select(timer => $"{timer.Key.GUID}: {timer.Value * msScale,5:0.00}ms").ToArray());
+                if (toShow.Count == 0)
+                    StringOutput = "No slow plugins";
+                else
+                    StringOutput = string.Join(" | ", toShow.Select(timer => $"{timer.Key.GUID}: {timer.Value * msScale,5:0.00}ms").ToArray());
 
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();

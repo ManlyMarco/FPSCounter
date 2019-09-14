@@ -74,7 +74,10 @@ namespace FPSCounter
             }
 
             if (_pluginStats.Value)
-                PluginCounter.Start(_helpers[0]);
+            {
+                // Make it start its coroutine on a helper so it gets disabled
+                PluginCounter.Start(_helpers[0], this);
+            }
 
             _helpers[0].enabled = enableCapturing;
             _helpers[1].enabled = enableCapturing;
