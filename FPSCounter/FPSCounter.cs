@@ -2,26 +2,34 @@
 using System.Diagnostics;
 using BepInEx;
 using BepInEx.Configuration;
+using BepInEx.Logging;
 using UnityEngine;
 
 namespace FPSCounter
 {
-    [BepInPlugin("MarC0.FPSCounter", "FPS Counter", Version)]
+    [BepInPlugin(GUID, "FPS Counter", Version)]
     public class FrameCounter : BaseUnityPlugin
     {
         public const string Version = "2.0";
+        public const string GUID = "MarC0.FPSCounter";
 
         public static ConfigWrapper<KeyboardShortcut> ShowCounter { get; private set; }
         public static ConfigWrapper<CounterColors> CounterColor { get; private set; }
         public static ConfigWrapper<TextAnchor> Position { get; private set; }
         public static ConfigWrapper<bool> Shown { get; private set; }
+        public static ConfigWrapper<bool> PluginStats { get; private set; }
+
+        internal static new ManualLogSource Logger;
 
         private void Awake()
         {
+            Logger = base.Logger;
+
             ShowCounter = Config.GetSetting("General", "Toggle counter and reset stats", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
             Shown = Config.GetSetting("General", "Enabled", false);
             Position = Config.GetSetting("Interface", "Screen position", TextAnchor.LowerRight);
             CounterColor = Config.GetSetting("Interface", "Color of the text", CounterColors.White);
+            PluginStats = Config.GetSetting("General", "Monitor plugins", true, new ConfigDescription("Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected."));
 
             Position.SettingChanged += (sender, args) => UpdateLooks();
             CounterColor.SettingChanged += (sender, args) => UpdateLooks();
@@ -53,6 +61,9 @@ namespace FPSCounter
 
         private void SetCapturingEnabled(bool enableCapturing, bool create)
         {
+            if (!enableCapturing)
+                PluginCounter.Stop();
+
             if (_helpers[0] == null)
             {
                 if (!create || !enableCapturing) return;
@@ -60,6 +71,9 @@ namespace FPSCounter
                 _helpers[0] = gameObject.AddComponent<FrameCounterHelper>();
                 _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
             }
+
+            if (PluginStats.Value)
+                PluginCounter.Start(_helpers[0]);
 
             _helpers[0].enabled = enableCapturing;
             _helpers[1].enabled = enableCapturing;
@@ -88,17 +102,16 @@ namespace FPSCounter
         private static readonly GUIStyle _style = new GUIStyle();
         private static Rect _screenRect;
         private const int ScreenOffset = 10;
-
         private static string _outputText;
 
         private static void DrawCounter()
         {
-            GUI.Label(_screenRect, _outputText, _style);
+            var outputText = string.IsNullOrEmpty(PluginCounter.StringOutput) ? _outputText : _outputText + "\n" + PluginCounter.StringOutput;
 
             if (CounterColor.Value == CounterColors.Outline)
-                ShadowAndOutline.DrawOutline(_screenRect, _outputText, _style, Color.black, Color.white, 1.5f);
+                ShadowAndOutline.DrawOutline(_screenRect, outputText, _style, Color.black, Color.white, 1.5f);
             else
-                GUI.Label(_screenRect, _outputText, _style);
+                GUI.Label(_screenRect, outputText, _style);
         }
 
         private static void UpdateLooks()
@@ -176,6 +189,7 @@ namespace FPSCounter
 
             #region Capture
 
+            internal static bool CanProcessOnGui;
             private static bool _onGuiHit;
 
             private IEnumerator Start()
@@ -196,6 +210,7 @@ namespace FPSCounter
                         _renderTime.Sample(TakeMeasurement());
                         _onGuiHit = true;
                     }
+                    CanProcessOnGui = false;
 
                     _onGuiTime.Sample(TakeMeasurement());
                     // Stop until FixedUpdate so it gets counted accurately
@@ -256,6 +271,7 @@ namespace FPSCounter
                     _lateUpdateTime.Sample(TakeMeasurement());
 
                     _onGuiHit = false;
+                    CanProcessOnGui = true;
                 }
             }
 

@@ -4,13 +4,14 @@ namespace FPSCounter
 {
     internal class MovingAverage
     {
-        public static int WindowSize = 11;
+        private readonly int _windowSize;
         private readonly Queue<long> _samples;
         private long _sampleAccumulator;
 
-        public MovingAverage()
+        public MovingAverage(int windowSize = 11)
         {
-            _samples = new Queue<long>(WindowSize + 1);
+            _windowSize = windowSize;
+            _samples = new Queue<long>(_windowSize + 1);
         }
 
         public long GetAverage()
@@ -23,7 +24,7 @@ namespace FPSCounter
             _sampleAccumulator += newSample;
             _samples.Enqueue(newSample);
 
-            if (_samples.Count > WindowSize)
+            if (_samples.Count > _windowSize)
                 _sampleAccumulator -= _samples.Dequeue();
         }
     }
