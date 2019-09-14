@@ -240,7 +240,7 @@ namespace FPSCounter
 
                     var msScale = 1f / (_nanosecPerTick * 1000f);
 
-                    _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.00}ms\nFixed: {avgFixed * msScale,5:0.00}ms\nUpdate: {avgUpdate * msScale,5:0.00}ms\nYield/anim: {avgYield * msScale,5:0.00}ms\nLate: {avgLate * msScale,5:0.00}ms\nRender/VSync: {avgRender * msScale,5:0.00}ms\nOnGUI: {avgGui * msScale,5:0.00}ms\nOther: {otherTicks * msScale,5:0.00}ms";
+                    _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms";
                 }
             }
 
