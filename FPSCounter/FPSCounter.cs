@@ -13,11 +13,11 @@ namespace FPSCounter
         public const string Version = "2.0";
         public const string GUID = "MarC0.FPSCounter";
 
-        public static ConfigWrapper<KeyboardShortcut> ShowCounter { get; private set; }
-        public static ConfigWrapper<CounterColors> CounterColor { get; private set; }
-        public static ConfigWrapper<TextAnchor> Position { get; private set; }
-        public static ConfigWrapper<bool> Shown { get; private set; }
-        public static ConfigWrapper<bool> PluginStats { get; private set; }
+        private static ConfigWrapper<KeyboardShortcut> _showCounter;
+        private static ConfigWrapper<CounterColors> _counterColor;
+        private static ConfigWrapper<TextAnchor> _position;
+        private static ConfigWrapper<bool> _shown;
+        private static ConfigWrapper<bool> _pluginStats;
 
         internal static new ManualLogSource Logger;
 
@@ -25,34 +25,35 @@ namespace FPSCounter
         {
             Logger = base.Logger;
 
-            ShowCounter = Config.GetSetting("General", "Toggle counter and reset stats", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
-            Shown = Config.GetSetting("General", "Enabled", false);
-            Position = Config.GetSetting("Interface", "Screen position", TextAnchor.LowerRight);
-            CounterColor = Config.GetSetting("Interface", "Color of the text", CounterColors.White);
-            PluginStats = Config.GetSetting("General", "Monitor plugins", true, new ConfigDescription("Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected."));
+            _showCounter = Config.Wrap("General", "Toggle counter and reset stats", "Key to enable and disable the plugin.", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
+            _shown = Config.Wrap("General", "Enable", "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.", false);
+            _pluginStats = Config.Wrap("General", "Enable monitoring plugins", "Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected. Has a small performance penalty.", true);
 
-            Position.SettingChanged += (sender, args) => UpdateLooks();
-            CounterColor.SettingChanged += (sender, args) => UpdateLooks();
-            Shown.SettingChanged += (sender, args) =>
+            _position = Config.Wrap("Interface", "Screen position", "Which corner of the screen to display the statistics in.", TextAnchor.LowerRight);
+            _counterColor = Config.Wrap("Interface", "Color of the text", "Color of the displayed stats. Outline has a performance hit but it always easy to see.", CounterColors.White);
+
+            _position.SettingChanged += (sender, args) => UpdateLooks();
+            _counterColor.SettingChanged += (sender, args) => UpdateLooks();
+            _shown.SettingChanged += (sender, args) =>
             {
                 UpdateLooks();
-                SetCapturingEnabled(Shown.Value, true);
+                SetCapturingEnabled(_shown.Value, true);
             };
         }
 
         private void Start()
         {
-            if (Shown.Value)
+            if (_shown.Value)
             {
                 UpdateLooks();
-                SetCapturingEnabled(Shown.Value, true);
+                SetCapturingEnabled(_shown.Value, true);
             }
         }
 
         private void Update()
         {
-            if (ShowCounter.Value.IsDown())
-                Shown.Value = !Shown.Value;
+            if (_showCounter.Value.IsDown())
+                _shown.Value = !_shown.Value;
         }
 
         #region Helpers
@@ -72,7 +73,7 @@ namespace FPSCounter
                 _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
             }
 
-            if (PluginStats.Value)
+            if (_pluginStats.Value)
                 PluginCounter.Start(_helpers[0]);
 
             _helpers[0].enabled = enableCapturing;
@@ -108,7 +109,7 @@ namespace FPSCounter
         {
             var outputText = string.IsNullOrEmpty(PluginCounter.StringOutput) ? _outputText : _outputText + "\n" + PluginCounter.StringOutput;
 
-            if (CounterColor.Value == CounterColors.Outline)
+            if (_counterColor.Value == CounterColors.Outline)
                 ShadowAndOutline.DrawOutline(_screenRect, outputText, _style, Color.black, Color.white, 1.5f);
             else
                 GUI.Label(_screenRect, outputText, _style);
@@ -116,15 +117,15 @@ namespace FPSCounter
 
         private static void UpdateLooks()
         {
-            if (CounterColor.Value == CounterColors.White)
+            if (_counterColor.Value == CounterColors.White)
                 _style.normal.textColor = Color.white;
-            if (CounterColor.Value == CounterColors.Black)
+            if (_counterColor.Value == CounterColors.Black)
                 _style.normal.textColor = Color.black;
 
             int w = Screen.width, h = Screen.height;
             _screenRect = new Rect(ScreenOffset, ScreenOffset, w - ScreenOffset * 2, h - ScreenOffset * 2);
 
-            _style.alignment = Position.Value;
+            _style.alignment = _position.Value;
             _style.fontSize = h / 65;
         }
 
