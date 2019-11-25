@@ -13,7 +13,7 @@ namespace FPSCounter
 {
     internal static class PluginCounter
     {
-        private static readonly Dictionary<BepInPlugin, MovingAverage> _averages = new Dictionary<BepInPlugin, MovingAverage>();
+        private static readonly Dictionary<BepInPlugin, KeyValuePair<MovingAverage, List<Stopwatch>>> _averages = new Dictionary<BepInPlugin, KeyValuePair<MovingAverage, List<Stopwatch>>>();
         private static readonly Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>> _timers = new Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>>();
         private static Harmony _harmonyInstance;
 
@@ -35,7 +35,7 @@ namespace FPSCounter
             // Hook unity event methods on all plugins
             var baseType = typeof(MonoBehaviour);
             var unityMethods = new[] { "FixedUpdate", "Update", "LateUpdate", "OnGUI" };
-            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null && x != thisPlugin))
+            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null))
             {
                 var timer = new Stopwatch();
 
@@ -48,7 +48,17 @@ namespace FPSCounter
                         if (methodInfo == null) continue;
 
                         if (!_timers.ContainsKey(pluginBehaviour))
-                            _timers[pluginBehaviour] = new KeyValuePair<BepInPlugin, Stopwatch>(baseUnityPlugin.Info.Metadata, timer);
+                        {
+                            var bepInPlugin = baseUnityPlugin.Info.Metadata;
+                            _timers[pluginBehaviour] = new KeyValuePair<BepInPlugin, Stopwatch>(bepInPlugin, timer);
+
+                            if (!_averages.TryGetValue(bepInPlugin, out var kvp))
+                            {
+                                kvp = new KeyValuePair<MovingAverage, List<Stopwatch>>(new MovingAverage(60), new List<Stopwatch>());
+                                _averages.Add(bepInPlugin, kvp);
+                            }
+                            kvp.Value.Add(timer);
+                        }
 
                         try
                         {
@@ -97,31 +107,22 @@ namespace FPSCounter
             {
                 yield return new WaitForEndOfFrame();
 
-                var toShow = _timers
-                    .GroupBy(x => x.Value.Key)
-                    .Select(
-                        group =>
-                        {
-                            if (!_averages.TryGetValue(group.Key, out var ma))
-                            {
-                                ma = new MovingAverage(60);
-                                _averages[group.Key] = ma;
-                            }
-
-                            var tickSum = group.Sum(x => x.Value.Value.ElapsedTicks);
-                            ma.Sample(tickSum);
-
-                            return new KeyValuePair<BepInPlugin, long>(group.Key, ma.GetAverage());
-                        })
-                    .Where(x => x.Value > cutoffTicks)
-                    .OrderByDescending(x => x.Value)
-                    .Take(5)
-                    .ToList();
+                var toShow = _averages.Select(kvp =>
+                {
+                    var tickSum = kvp.Value.Value.Sum(x => x.ElapsedTicks);
+                    var ma = kvp.Value.Key;
+                    ma.Sample(tickSum);
+                    return new { plugin = kvp.Key.GUID, avg = ma.GetAverage() };
+                })
+                .Where(x => x.avg > cutoffTicks)
+                .OrderByDescending(x => x.avg)
+                .Take(5)
+                .ToList();
 
                 if (toShow.Count == 0)
                     StringOutput = "No slow plugins";
                 else
-                    StringOutput = string.Join(" | ", toShow.Select(timer => $"{timer.Key.GUID}: {timer.Value * msScale,5:0.00}ms").ToArray());
+                    StringOutput = string.Join(" | ", toShow.Select(timer => $"{timer.plugin}: {timer.avg * msScale,5:0.00}ms").ToArray());
 
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();

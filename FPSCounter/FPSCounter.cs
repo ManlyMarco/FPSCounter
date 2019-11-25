@@ -37,19 +37,10 @@ namespace FPSCounter
             _shown.SettingChanged += (sender, args) =>
             {
                 UpdateLooks();
-                SetCapturingEnabled(_shown.Value, true);
+                SetCapturingEnabled(_shown.Value);
             };
         }
-
-        private void Start()
-        {
-            if (_shown.Value)
-            {
-                UpdateLooks();
-                SetCapturingEnabled(_shown.Value, true);
-            }
-        }
-
+        
         private void Update()
         {
             if (_showCounter.Value.IsDown())
@@ -60,37 +51,36 @@ namespace FPSCounter
 
         private readonly MonoBehaviour[] _helpers = new MonoBehaviour[2];
 
-        private void SetCapturingEnabled(bool enableCapturing, bool create)
+        private void SetCapturingEnabled(bool enableCapturing)
         {
             if (!enableCapturing)
+            {
                 PluginCounter.Stop();
-
-            if (_helpers[0] == null)
-            {
-                if (!create || !enableCapturing) return;
-
-                _helpers[0] = gameObject.AddComponent<FrameCounterHelper>();
-                _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
+                Destroy(_helpers[0]);
+                Destroy(_helpers[1]);
             }
-
-            if (_pluginStats.Value)
+            else
             {
-                // Make it start its coroutine on a helper so it gets disabled
-                PluginCounter.Start(_helpers[0], this);
-            }
+                if (_helpers[0] == null) _helpers[0] = gameObject.AddComponent<FrameCounterHelper>();
+                if (_helpers[1] == null) _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
 
-            _helpers[0].enabled = enableCapturing;
-            _helpers[1].enabled = enableCapturing;
+                if (_pluginStats.Value)
+                    PluginCounter.Start(_helpers[0], this);
+            }
         }
 
         private void OnEnable()
         {
-            SetCapturingEnabled(true, false);
+            if (_shown.Value)
+            {
+                UpdateLooks();
+                SetCapturingEnabled(true);
+            }
         }
 
         private void OnDisable()
         {
-            SetCapturingEnabled(false, false);
+            SetCapturingEnabled(false);
         }
 
         private void OnDestroy()
