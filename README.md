@@ -1,6 +1,13 @@
-# FPSCounter
-Simple FPS Counter plugin for BepInEx. To install put the .dll file to the BepInEx directory.
+![preview](https://user-images.githubusercontent.com/39247311/64912038-bf064180-d729-11e9-98dd-17c48efe0a7f.PNG)
+# FPSCounter for BepInEx
+An FPS Counter plugin for BepInEx 5.0 or later. Here are some of the features:
+- Accurately measures true ms spent per frame (not calculated from FPS)
+- Measures time spent in each of the steps Unity takes in order to render a frame (e.g. how long all Update methods took to run collectively)
+- Measures time spent in each of the installed BepInEx plugins (easy to see performance hogs, only counts code running in Update methods)
 
-Needs latest ConfigurationManager plugin to work. To enable go to mod settings, or press Shift+U.
+## How to use
+1. Install [BepInEx 5.0](https://github.com/BepInEx/BepInEx) or newer.
+2. Extract the release into your game root, the .dll should end up in BepInEx\plugins directory.
+3. Start the game and press U + LeftShift.
 
-![capture](https://user-images.githubusercontent.com/39247311/40072224-60dd92b0-5873-11e8-852d-51c75d2c7f19.PNG)
+The on/off hotkey and looks can be configured in the config file in bepinex\config (have to run the game at least once to generate it), or by using [BepInEx.ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
