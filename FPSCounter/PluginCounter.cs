@@ -35,7 +35,7 @@ namespace FPSCounter
             // Hook unity event methods on all plugins
             var baseType = typeof(MonoBehaviour);
             var unityMethods = new[] { "FixedUpdate", "Update", "LateUpdate", "OnGUI" };
-            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null))
+            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null && x != thisPlugin))
             {
                 var timer = new Stopwatch();
 
