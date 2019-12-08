@@ -13,11 +13,11 @@ namespace FPSCounter
         public const string Version = "2.1";
         public const string GUID = "MarC0.FPSCounter";
 
-        private static ConfigWrapper<KeyboardShortcut> _showCounter;
-        private static ConfigWrapper<CounterColors> _counterColor;
-        private static ConfigWrapper<TextAnchor> _position;
-        private static ConfigWrapper<bool> _shown;
-        private static ConfigWrapper<bool> _pluginStats;
+        private static ConfigEntry<KeyboardShortcut> _showCounter;
+        private static ConfigEntry<CounterColors> _counterColor;
+        private static ConfigEntry<TextAnchor> _position;
+        private static ConfigEntry<bool> _shown;
+        private static ConfigEntry<bool> _pluginStats;
 
         internal static new ManualLogSource Logger;
 
@@ -25,12 +25,12 @@ namespace FPSCounter
         {
             Logger = base.Logger;
 
-            _showCounter = Config.Wrap("General", "Toggle counter and reset stats", "Key to enable and disable the plugin.", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift));
-            _shown = Config.Wrap("General", "Enable", "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.", false);
-            _pluginStats = Config.Wrap("General", "Enable monitoring plugins", "Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected. Has a small performance penalty.", true);
+            _showCounter = Config.Bind("General", "Toggle counter and reset stats", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift), "Key to enable and disable the plugin.");
+            _shown = Config.Bind("General", "Enable", false, "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.");
+            _pluginStats = Config.Bind("General", "Enable monitoring plugins", true, "Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected. Has a small performance penalty.");
 
-            _position = Config.Wrap("Interface", "Screen position", "Which corner of the screen to display the statistics in.", TextAnchor.LowerRight);
-            _counterColor = Config.Wrap("Interface", "Color of the text", "Color of the displayed stats. Outline has a performance hit but it always easy to see.", CounterColors.White);
+            _position = Config.Bind("Interface", "Screen position", TextAnchor.LowerRight, "Which corner of the screen to display the statistics in.");
+            _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
 
             _position.SettingChanged += (sender, args) => UpdateLooks();
             _counterColor.SettingChanged += (sender, args) => UpdateLooks();
