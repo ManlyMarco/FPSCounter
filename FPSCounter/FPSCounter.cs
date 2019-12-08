@@ -39,6 +39,8 @@ namespace FPSCounter
                 UpdateLooks();
                 SetCapturingEnabled(_shown.Value);
             };
+
+            OnEnable();
         }
         
         private void Update()
@@ -71,7 +73,7 @@ namespace FPSCounter
 
         private void OnEnable()
         {
-            if (_shown.Value)
+            if (_shown != null && _shown.Value)
             {
                 UpdateLooks();
                 SetCapturingEnabled(true);
