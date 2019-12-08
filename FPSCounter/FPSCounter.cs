@@ -21,7 +21,7 @@ namespace FPSCounter
 
         internal static new ManualLogSource Logger;
 
-        private void Awake()
+        private void Start()
         {
             Logger = base.Logger;
 
