@@ -18,6 +18,7 @@ namespace FPSCounter
         private static ConfigEntry<TextAnchor> _position;
         private static ConfigEntry<bool> _shown;
         private static ConfigEntry<bool> _pluginStats;
+        private static ConfigEntry<bool> _onlyFPS;
 
         internal static new ManualLogSource Logger;
 
@@ -28,6 +29,7 @@ namespace FPSCounter
             _showCounter = Config.Bind("General", "Toggle counter and reset stats", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift), "Key to enable and disable the plugin.");
             _shown = Config.Bind("General", "Enable", false, "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.");
             _pluginStats = Config.Bind("General", "Enable monitoring plugins", true, "Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected. Has a small performance penalty.");
+            _onlyFPS = Config.Bind("General", "Only FPS", false, "Only show and calculate the FPS.");
 
             _position = Config.Bind("Interface", "Screen position", TextAnchor.LowerRight, "Which corner of the screen to display the statistics in.");
             _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
@@ -66,7 +68,7 @@ namespace FPSCounter
                 if (_helpers[0] == null) _helpers[0] = gameObject.AddComponent<FrameCounterHelper>();
                 if (_helpers[1] == null) _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
 
-                if (_pluginStats.Value)
+                if (_pluginStats.Value && !_onlyFPS.Value)
                     PluginCounter.Start(_helpers[0], this);
             }
         }
@@ -220,22 +222,28 @@ namespace FPSCounter
 
                     // Calculate only once at end of frame so all data is from a single frame
                     var avgFrame = _frameTime.GetAverage();
-                    var avgFixed = _fixedUpdateTime.GetAverage();
-                    var avgUpdate = _updateTime.GetAverage();
-                    var avgYield = _yieldTime.GetAverage();
-                    var avgLate = _lateUpdateTime.GetAverage();
-                    var avgRender = _renderTime.GetAverage();
-                    var avgGui = _onGuiTime.GetAverage();
-
                     var frameTimeScaled = avgFrame / _nanosecPerTick;
                     var fps = 1000000f / frameTimeScaled;
-
-                    var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
-                    var otherTicks = avgFrame - totalCapturedTicks;
-
                     var msScale = 1f / (_nanosecPerTick * 1000f);
 
-                    _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms";
+                    _outputText = $"{fps:0.0} FPS";
+
+                    if (!_onlyFPS.Value)
+                    {
+                        var avgFixed = _fixedUpdateTime.GetAverage();
+                        var avgUpdate = _updateTime.GetAverage();
+                        var avgYield = _yieldTime.GetAverage();
+                        var avgLate = _lateUpdateTime.GetAverage();
+                        var avgRender = _renderTime.GetAverage();
+                        var avgGui = _onGuiTime.GetAverage();
+
+                        var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
+
+                        var otherTicks = avgFrame - totalCapturedTicks;
+
+                        _outputText = _outputText + $"{avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms";
+                    }
+
                 }
             }
 
