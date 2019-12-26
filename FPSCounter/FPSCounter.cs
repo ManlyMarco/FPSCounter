@@ -164,26 +164,17 @@ namespace FPSCounter
 
             #region Timing
 
-            private static Stopwatch _stopwatch;
-            private static Stopwatch _stopwatchFrame;
-            private static long _nanosecPerTick;
+            private static Stopwatch _measurementStopwatch;
 
             private static long TakeMeasurement()
             {
-                var result = _stopwatch.ElapsedTicks;
-                _stopwatch.Reset();
-                _stopwatch.Start();
+                var result = _measurementStopwatch.ElapsedTicks;
+                _measurementStopwatch.Reset();
+                _measurementStopwatch.Start();
                 return result;
             }
 
             #endregion
-
-            private void Awake()
-            {
-                _stopwatch = new Stopwatch();
-                _stopwatchFrame = new Stopwatch();
-                _nanosecPerTick = 1000L * 1000L * 100L / Stopwatch.Frequency;
-            }
 
             #region Capture
 
@@ -192,6 +183,11 @@ namespace FPSCounter
 
             private IEnumerator Start()
             {
+                _measurementStopwatch = new Stopwatch();
+                var totalStopwatch = new Stopwatch();
+                var nanosecPerTick = (float)(1000 * 1000 * 100) / Stopwatch.Frequency;
+                var msScale = 1f / (nanosecPerTick * 1000f);
+
                 while (true)
                 {
                     // Waits until right after last Update
@@ -211,19 +207,17 @@ namespace FPSCounter
                     CanProcessOnGui = false;
 
                     _onGuiTime.Sample(TakeMeasurement());
-                    // Stop until FixedUpdate so it gets counted accurately
-                    _stopwatch.Stop();
-                    _stopwatch.Reset();
+                    // Stop until FixedUpdate so it gets counted accurately (skip other end of frame stuff)
+                    _measurementStopwatch.Reset();
 
                     // Get actual frame round-time
-                    _frameTime.Sample(_stopwatchFrame.ElapsedTicks);
-                    _stopwatchFrame.Reset();
-                    _stopwatchFrame.Start();
+                    _frameTime.Sample(totalStopwatch.ElapsedTicks);
+                    totalStopwatch.Reset();
+                    totalStopwatch.Start();
 
                     // Calculate only once at end of frame so all data is from a single frame
                     var avgFrame = _frameTime.GetAverage();
-                    var frameTimeScaled = avgFrame / _nanosecPerTick;
-                    var fps = 1000000f / frameTimeScaled;
+                    var fps = 1000000f / (avgFrame / nanosecPerTick);
 
                     if (_showUnityMethodStats.Value)
                     {
@@ -237,8 +231,6 @@ namespace FPSCounter
                         var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
                         var otherTicks = avgFrame - totalCapturedTicks;
 
-                        var msScale = 1f / (_nanosecPerTick * 1000f);
-
                         _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms";
                     }
                     else
@@ -250,8 +242,8 @@ namespace FPSCounter
 
             private void FixedUpdate()
             {
-                // If fixed doesn't run at all this frame, stopwatch won't get started tick count will stay at 0
-                _stopwatch.Start();
+                // If fixed doesn't run at all this frame, stopwatch won't get started and tick count will stay at 0
+                _measurementStopwatch.Start();
             }
 
             private void Update()
