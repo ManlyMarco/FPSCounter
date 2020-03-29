@@ -83,7 +83,7 @@ namespace FPSCounter
         {
             if (!_running) return;
 
-            _harmonyInstance.UnpatchAll();
+            _harmonyInstance.UnpatchAll(_harmonyInstance.Id);
 
             _running = false;
 
