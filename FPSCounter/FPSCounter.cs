@@ -1,5 +1,8 @@
+using System;
 using System.Collections;
 using System.Diagnostics;
+using System.IO;
+using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -10,7 +13,7 @@ namespace FPSCounter
     [BepInPlugin(GUID, "FPS Counter", Version)]
     public class FrameCounter : BaseUnityPlugin
     {
-        public const string Version = "2.2";
+        public const string Version = "3.0";
         public const string GUID = "MarC0.FPSCounter";
 
         private static ConfigEntry<KeyboardShortcut> _showCounter;
@@ -19,6 +22,7 @@ namespace FPSCounter
         private static ConfigEntry<bool> _shown;
         private static ConfigEntry<bool> _showPluginStats;
         private static ConfigEntry<bool> _showUnityMethodStats;
+        private static ConfigEntry<bool> _measureMemory;
 
         internal static new ManualLogSource Logger;
 
@@ -30,6 +34,21 @@ namespace FPSCounter
             _shown = Config.Bind("General", "Enable", false, "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.");
             _showPluginStats = Config.Bind("General", "Enable monitoring plugins", true, "Count time each plugin takes every frame to execute. Only detects MonoBehaviour event methods, so results might be lower than expected. Has a small performance penalty.");
             _showUnityMethodStats = Config.Bind("General", "Show detailed frame stats", true, "Show how much time was spent by Unity in each part of the frame, for example how long it took to run all Update methods.");
+
+            try
+            {
+                var procMem = MemoryInfo.QueryProcessMemStatus();
+                var memorystatus = MemoryInfo.QuerySystemMemStatus();
+                if (procMem.WorkingSetSize <= 0 || memorystatus.ullTotalPhys <= 0)
+                    throw new IOException("Empty data was returned");
+
+                _measureMemory = Config.Bind("General", "Show memory and GC stats", true,
+                    "Show memory usage of the process, free available physical memory and garbage collector statistics (if available).");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogWarning("Memory statistics are not available - " + ex.Message);
+            }
 
             _position = Config.Bind("Interface", "Screen position", TextAnchor.LowerRight, "Which corner of the screen to display the statistics in.");
             _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
@@ -100,16 +119,16 @@ namespace FPSCounter
         private static readonly GUIStyle _style = new GUIStyle();
         private static Rect _screenRect;
         private const int ScreenOffset = 10;
-        private static string _outputText;
+
+        private static readonly StringBuilder _outputStringBuilder = new StringBuilder();
+        private static string _frameOutputText;
 
         private static void DrawCounter()
         {
-            var outputText = string.IsNullOrEmpty(PluginCounter.StringOutput) ? _outputText : _outputText + "\n" + PluginCounter.StringOutput;
-
             if (_counterColor.Value == CounterColors.Outline)
-                ShadowAndOutline.DrawOutline(_screenRect, outputText, _style, Color.black, Color.white, 1.5f);
+                ShadowAndOutline.DrawOutline(_screenRect, _frameOutputText, _style, Color.black, Color.white, 1.5f);
             else
-                GUI.Label(_screenRect, outputText, _style);
+                GUI.Label(_screenRect, _frameOutputText, _style);
         }
 
         private static void UpdateLooks()
@@ -219,6 +238,12 @@ namespace FPSCounter
                     var avgFrame = _frameTime.GetAverage();
                     var fps = 1000000f / (avgFrame / nanosecPerTick);
 
+                    // Reuse the SB to reduce amount of created garbage
+                    _outputStringBuilder.Length = 0;
+
+                    _outputStringBuilder.Append(fps.ToString("0.0"));
+                    _outputStringBuilder.Append(" FPS");
+
                     if (_showUnityMethodStats.Value)
                     {
                         var avgFixed = _fixedUpdateTime.GetAverage();
@@ -231,12 +256,51 @@ namespace FPSCounter
                         var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
                         var otherTicks = avgFrame - totalCapturedTicks;
 
-                        _outputText = $"{fps:0.0} FPS, {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms";
+                        // todo split into append calls to reduce GC pressure?
+                        _outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
                     }
-                    else
+
+                    if (_measureMemory != null && _measureMemory.Value)
                     {
-                        _outputText = $"{fps:0.0} FPS";
+                        _outputStringBuilder.AppendLine();
+
+                        var procMem = MemoryInfo.QueryProcessMemStatus();
+                        var currentMem = procMem.WorkingSetSize / 1024 / 1024;
+                        _outputStringBuilder.Append($"RAM: {currentMem}MB used");
+
+                        var totalGcMemBytes = GC.GetTotalMemory(false);
+                        if (totalGcMemBytes != 0)
+                        {
+                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
+                            _outputStringBuilder.Append($" ({totalGcMem}MB in GC)");
+                        }
+
+                        var memorystatus = MemoryInfo.QuerySystemMemStatus();
+                        var freeMem = memorystatus.ullAvailPhys / 1024 / 1024;
+                        //var allMem = memorystatus.ullTotalPhys / 1024 / 1024;
+                        _outputStringBuilder.Append($", {freeMem}MB free");
+
+                        // Check if current GC supports generations
+                        var gcGens = GC.MaxGeneration;
+                        if (gcGens > 0)
+                        {
+                            _outputStringBuilder.AppendLine();
+                            _outputStringBuilder.Append("GC hits:");
+                            for (var g = 0; g < gcGens; g++)
+                            {
+                                var collections = GC.CollectionCount(g);
+                                _outputStringBuilder.Append($" {g}:{collections}");
+                            }
+                        }
                     }
+
+                    if (PluginCounter.StringOutput != null)
+                    {
+                        _outputStringBuilder.AppendLine();
+                        _outputStringBuilder.Append(PluginCounter.StringOutput);
+                    }
+
+                    _frameOutputText = _outputStringBuilder.ToString();
                 }
             }
 

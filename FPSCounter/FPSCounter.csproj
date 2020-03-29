@@ -37,6 +37,7 @@
   <ItemGroup>
     <Compile Include="CounterColors.cs" />
     <Compile Include="FPSCounter.cs" />
+    <Compile Include="MemoryInfo.cs" />
     <Compile Include="MovingAverage.cs" />
     <Compile Include="PluginCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
