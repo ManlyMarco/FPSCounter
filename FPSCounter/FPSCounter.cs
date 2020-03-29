@@ -60,6 +60,7 @@ namespace FPSCounter
                 UpdateLooks();
                 SetCapturingEnabled(_shown.Value);
             };
+            _showPluginStats.SettingChanged += (sender, args) => SetCapturingEnabled(_shown.Value);
 
             OnEnable();
         }
@@ -89,6 +90,8 @@ namespace FPSCounter
 
                 if (_showPluginStats.Value)
                     PluginCounter.Start(_helpers[0], this);
+                else
+                    PluginCounter.Stop();
             }
         }
 
@@ -108,8 +111,7 @@ namespace FPSCounter
 
         private void OnDestroy()
         {
-            Destroy(_helpers[0]);
-            Destroy(_helpers[1]);
+            SetCapturingEnabled(false);
         }
 
         #endregion
@@ -256,7 +258,7 @@ namespace FPSCounter
                         var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
                         var otherTicks = avgFrame - totalCapturedTicks;
 
-                        // todo split into append calls to reduce GC pressure?
+                        // todo split into append calls to reduce GC pressure? low impact
                         _outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
                     }
 
