@@ -6,6 +6,7 @@ using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
+using MemGraph;
 using UnityEngine;
 
 namespace FPSCounter
@@ -64,11 +65,17 @@ namespace FPSCounter
 
             OnEnable();
         }
+        PadHeap padHeap = new MemGraph.PadHeap();
 
         private void Update()
         {
             if (_showCounter.Value.IsDown())
                 _shown.Value = !_shown.Value;
+
+            if (Input.GetKeyDown(KeyCode.BackQuote))
+            {
+                padHeap.Pad();
+            }
         }
 
         #region Helpers
