@@ -174,6 +174,7 @@ namespace FPSCounter
             private static readonly MovingAverage _lateUpdateTime = new MovingAverage();
             private static readonly MovingAverage _renderTime = new MovingAverage();
             private static readonly MovingAverage _onGuiTime = new MovingAverage();
+            private static readonly MovingAverage _gcAddedSize = new MovingAverage(60);
 
             /// <summary>
             /// Measure frame time separately to get the true value
@@ -208,6 +209,7 @@ namespace FPSCounter
                 var totalStopwatch = new Stopwatch();
                 var nanosecPerTick = (float)(1000 * 1000 * 100) / Stopwatch.Frequency;
                 var msScale = 1f / (nanosecPerTick * 1000f);
+                var gcPreviousAmount = 0L;
 
                 while (true)
                 {
@@ -264,30 +266,31 @@ namespace FPSCounter
 
                     if (_measureMemory != null && _measureMemory.Value)
                     {
-                        _outputStringBuilder.AppendLine();
-
                         var procMem = MemoryInfo.QueryProcessMemStatus();
                         var currentMem = procMem.WorkingSetSize / 1024 / 1024;
-                        _outputStringBuilder.Append($"RAM: {currentMem}MB used");
-
-                        var totalGcMemBytes = GC.GetTotalMemory(false);
-                        if (totalGcMemBytes != 0)
-                        {
-                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
-                            _outputStringBuilder.Append($" ({totalGcMem}MB in GC)");
-                        }
 
                         var memorystatus = MemoryInfo.QuerySystemMemStatus();
                         var freeMem = memorystatus.ullAvailPhys / 1024 / 1024;
                         //var allMem = memorystatus.ullTotalPhys / 1024 / 1024;
-                        _outputStringBuilder.Append($", {freeMem}MB free");
 
+                        _outputStringBuilder.Append($"\nRAM: {currentMem}MB used, {freeMem}MB free");
+
+                        var totalGcMemBytes = GC.GetTotalMemory(false);
+                        if (totalGcMemBytes != 0)
+                        {
+                            var gcDelta = totalGcMemBytes - gcPreviousAmount;
+                            _gcAddedSize.Sample(gcDelta);
+
+                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
+                            _outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
+                            gcPreviousAmount = totalGcMemBytes;
+                        }
+                        
                         // Check if current GC supports generations
                         var gcGens = GC.MaxGeneration;
                         if (gcGens > 0)
                         {
-                            _outputStringBuilder.AppendLine();
-                            _outputStringBuilder.Append("GC hits:");
+                            _outputStringBuilder.Append("\nGC hits:");
                             for (var g = 0; g < gcGens; g++)
                             {
                                 var collections = GC.CollectionCount(g);
