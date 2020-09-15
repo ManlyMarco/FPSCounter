@@ -15,10 +15,13 @@ namespace FPSCounter
     {
         private static readonly Dictionary<BepInPlugin, KeyValuePair<MovingAverage, List<Stopwatch>>> _averages = new Dictionary<BepInPlugin, KeyValuePair<MovingAverage, List<Stopwatch>>>();
         private static readonly Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>> _timers = new Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>>();
+        private static List<KeyValuePair<string, long>> _sortedList;
         private static Harmony _harmonyInstance;
 
         private static bool _running;
         private static Action _stopAction;
+        private static FixedString _fString;
+        private const string NO_PLUGINS = "No slow plugins";
 
         public static string StringOutput { get; private set; }
 
@@ -29,6 +32,9 @@ namespace FPSCounter
 
             if (_harmonyInstance == null)
                 _harmonyInstance = new Harmony(FrameCounter.GUID);
+
+            if (_fString == null)
+                _fString = new FixedString(500);
 
             var hookCount = 0;
 
@@ -75,6 +81,7 @@ namespace FPSCounter
 
             var co = mb.StartCoroutine(CollectLoop());
             _stopAction = () => mb.StopCoroutine(co);
+            _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
 
             FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods in {Chainloader.Plugins.Count} plugins");
         }
@@ -99,31 +106,50 @@ namespace FPSCounter
 
         private static IEnumerator CollectLoop()
         {
+
             var nanosecPerTick = 1000L * 1000L * 100L / Stopwatch.Frequency;
             var msScale = 1f / (nanosecPerTick * 1000f);
             var cutoffTicks = nanosecPerTick * 100;
+            var builder = _fString.builder;
 
             while (true)
             {
                 yield return new WaitForEndOfFrame();
 
-                var toShow = _averages.Select(kvp =>
+                _sortedList.Clear();
+                foreach (var kv in _averages)
                 {
-                    var tickSum = kvp.Value.Value.Sum(x => x.ElapsedTicks);
-                    var ma = kvp.Value.Key;
+                    long tickSum = 0;
+                    var len = kv.Value.Value.Count;
+                    for (int i = 0; i < len; i++)
+                        tickSum = tickSum + kv.Value.Value[i].ElapsedTicks;
+                    var ma = kv.Value.Key;
                     ma.Sample(tickSum);
-                    return new { plugin = kvp.Key.GUID, avg = ma.GetAverage() };
-                })
-                .Where(x => x.avg > cutoffTicks)
-                .OrderByDescending(x => x.avg)
-                .Take(5)
-                .ToList();
+                    var av = ma.GetAverage();
+                    if (av > cutoffTicks)
+                        _sortedList.Add(new KeyValuePair<string, long>(kv.Key.GUID, av));
+                }
+                if (_sortedList.Count > 0)
+                {
+                    int c = 0;
+                    // TODO: .OrderByDescending allocates
+                    foreach (var kvav in _sortedList.OrderByDescending(x => x.Value))
+                    {
+                        builder.Concat(kvav.Key);
+                        builder.Concat(": ");
+                        builder.Concat(kvav.Value * msScale, 1);
+                        builder.Concat("ms");
 
-                if (toShow.Count == 0)
-                    StringOutput = "No slow plugins";
+                        if (c >= 5) break;
+                        c++;
+                    }
+                }
                 else
-                    StringOutput = string.Join(" | ", toShow.Select(timer => $"{timer.plugin}: {timer.avg * msScale,5:0.00}ms").ToArray());
-
+                {
+                    builder.Concat(NO_PLUGINS);
+                }
+              
+                StringOutput = _fString.PopValue();
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();
             }

@@ -22,6 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>embedded</DebugType>
@@ -33,9 +34,13 @@
     <CodeAnalysisRuleSet>
     </CodeAnalysisRuleSet>
     <DebugSymbols>true</DebugSymbols>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CounterColors.cs" />
+    <Compile Include="Extensions\FixedString.cs" />
+    <Compile Include="Extensions\StringBuilderFormat.cs" />
+    <Compile Include="Extensions\StringBuilderNumerics.cs" />
     <Compile Include="FPSCounter.cs" />
     <Compile Include="MemoryInfo.cs" />
     <Compile Include="MovingAverage.cs" />
