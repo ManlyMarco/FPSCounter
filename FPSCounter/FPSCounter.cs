@@ -207,6 +207,7 @@ namespace FPSCounter
             internal static bool CanProcessOnGui;
             private static bool _onGuiHit;
 
+            private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
             private IEnumerator Start()
             {
                 _measurementStopwatch = new Stopwatch();
@@ -223,7 +224,7 @@ namespace FPSCounter
                     _updateTime.Sample(TakeMeasurement());
 
                     // Waits until right after last OnGUI
-                    yield return new WaitForEndOfFrame();
+                    yield return _waitForEndOfFrame;
 
                     // If no OnGUI was executed somehow, make sure to log the render time
                     if (!_onGuiHit)

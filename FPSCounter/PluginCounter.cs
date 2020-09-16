@@ -104,9 +104,9 @@ namespace FPSCounter
             StringOutput = null;
         }
 
+        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
         private static IEnumerator CollectLoop()
         {
-
             var nanosecPerTick = 1000L * 1000L * 100L / Stopwatch.Frequency;
             var msScale = 1f / (nanosecPerTick * 1000f);
             var cutoffTicks = nanosecPerTick * 100;
@@ -114,7 +114,7 @@ namespace FPSCounter
 
             while (true)
             {
-                yield return new WaitForEndOfFrame();
+                yield return _waitForEndOfFrame;
 
                 _sortedList.Clear();
                 foreach (var kv in _averages)
@@ -148,7 +148,7 @@ namespace FPSCounter
                 {
                     builder.Concat(NO_PLUGINS);
                 }
-              
+
                 StringOutput = _fString.PopValue();
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();
