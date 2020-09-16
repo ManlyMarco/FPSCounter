@@ -13,40 +13,39 @@ namespace FPSCounter
 
         public FixedString(int strSize)
         {
-            value = new string(' ', strSize);
+           value = new string(' ', strSize);
             builder = new StringBuilder(strSize, strSize);
+
             var fields = typeof(StringBuilder).GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
             for (int i = 0; i < fields.Length; i++)
             {
-                cachedFld = fields[i];
-                if (fields[i].Name.Equals("_str") || fields[i].Name.Equals("m_StringValue"))
+                isChunky = fields[i].Name.Equals("m_ChunkChars");
+                if (isChunky)
                 {
-                    value = (string)fields[i].GetValue(builder);
-                    isChunky = false;
+                    cachedFld = fields[i];
+                    charData = (char[])fields[i].GetValue(builder);
                     break;
                 }
-                else if (fields[i].Name.Equals("m_ChunkChars"))
+                else if (fields[i].Name.Equals("_str") || fields[i].Name.Equals("m_StringValue"))
                 {
-                    charData = (char[])fields[i].GetValue(builder);
-                    isChunky = true;
+                    cachedFld = fields[i];
+                    value = (string)fields[i].GetValue(builder);
                     break;
                 }
             }
+
+            if (cachedFld == null)
+                throw new System.NotImplementedException("Unknown StringBuilder version");
         }
 
         public string PopValue()
         {
             if (isChunky)
-            {
                 CopyIntoString(value, charData, builder.Length);
-            }
             else
-            {
                 for (int i = builder.Length; i < builder.Capacity; i++)
-                    builder.Append((char)0);
-                value = (string)cachedFld.GetValue(builder);
+	                builder.Append((char)0);
             }
-
             builder.Length = 0;
             return value;
         }
