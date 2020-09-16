@@ -2,8 +2,6 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
@@ -123,13 +121,13 @@ namespace FPSCounter
         private static readonly GUIStyle _style = new GUIStyle();
         private static Rect _screenRect;
         private const int ScreenOffset = 10;
-        
+
         //private static StringBuilder _outputStringBuilder;
         private static FixedString fString = new FixedString(MAX_STRING_SIZE);
         private static string _frameOutputText;
-        
- 
- 
+
+
+
 
         private static void DrawCounter()
         {
@@ -320,7 +318,7 @@ namespace FPSCounter
 
                             gcPreviousAmount = totalGcMemBytes;
                         }
-                        
+
                         // Check if current GC supports generations
                         var gcGens = GC.MaxGeneration;
                         if (gcGens > 0)

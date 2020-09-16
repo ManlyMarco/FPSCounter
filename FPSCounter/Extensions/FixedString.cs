@@ -3,7 +3,7 @@ using System.Text;
 
 namespace FPSCounter
 {
-    public class FixedString
+    internal class FixedString
     {
         public readonly StringBuilder builder;
         private string value;
@@ -43,7 +43,7 @@ namespace FPSCounter
             else
             {
                 for (int i = builder.Length; i < builder.Capacity; i++)
-	                builder.Append((char)0);
+                    builder.Append((char)0);
                 value = (string)cachedFld.GetValue(builder);
             }
 
@@ -53,20 +53,17 @@ namespace FPSCounter
 
         public static unsafe void CopyIntoString(string dest_string, char[] char_buffer, int length)
         {
-            System.Diagnostics.Debug.Assert( dest_string.Length >= length );
-            unsafe
+            System.Diagnostics.Debug.Assert(dest_string.Length >= length);
+            fixed (char* dest_fixed = dest_string)
             {
-                fixed ( char* dest_fixed = dest_string )
-                {
-                    // Copy in the string data
-                    for ( int i = 0; i < length; i++ )
-                        dest_fixed[i] = char_buffer[i];
-                    // NULL terminate the dest string
-                    if ( length < dest_string.Length )
-                        dest_fixed[length] = (char)0;
-                }
+                // Copy in the string data
+                for (int i = 0; i < length; i++)
+                    dest_fixed[i] = char_buffer[i];
+                // NULL terminate the dest string
+                if (length < dest_string.Length)
+                    dest_fixed[length] = (char)0;
             }
         }
- 
+
     }
 }
