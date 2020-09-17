@@ -268,21 +268,21 @@ namespace FPSCounter
                         // todo split into append calls to reduce GC pressure? low impact
                         //_outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
                         _outputStringBuilder.Append(", ");
-                        _outputStringBuilder.Concat(avgFrame * msScale, 1);
+                        _outputStringBuilder.Concat(avgFrame * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nFixed: ");
-                        _outputStringBuilder.Concat(avgFixed * msScale, 1);
+                        _outputStringBuilder.Concat(avgFixed * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nUpdate: ");
-                        _outputStringBuilder.Concat(avgUpdate * msScale, 1);
+                        _outputStringBuilder.Concat(avgUpdate * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nYield/anim: ");
-                        _outputStringBuilder.Concat(avgYield * msScale, 1);
+                        _outputStringBuilder.Concat(avgYield * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nLate: ");
-                        _outputStringBuilder.Concat(avgLate * msScale, 1);
+                        _outputStringBuilder.Concat(avgLate * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nRender/VSync: ");
-                        _outputStringBuilder.Concat(avgRender * msScale, 1);
+                        _outputStringBuilder.Concat(avgRender * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nOnGUI: ");
-                        _outputStringBuilder.Concat(avgGui * msScale, 1);
+                        _outputStringBuilder.Concat(avgGui * msScale, 1, 2);
                         _outputStringBuilder.Append("ms\nOther: ");
-                        _outputStringBuilder.Concat(otherTicks * msScale, 1);
+                        _outputStringBuilder.Concat(otherTicks * msScale, 1, 2);
                         _outputStringBuilder.Append("ms");
                     }
 
@@ -311,7 +311,7 @@ namespace FPSCounter
                             var totalGcMem = totalGcMemBytes / 1024 / 1024;
                             //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
                             _outputStringBuilder.Append("\nGC: ");
-                            _outputStringBuilder.Concat(totalGcMem);
+                            _outputStringBuilder.Concat((int)totalGcMem);
                             _outputStringBuilder.Append("MB (");
                             _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024));
                             _outputStringBuilder.Append("KB/s)");

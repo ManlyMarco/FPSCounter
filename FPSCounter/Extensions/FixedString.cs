@@ -13,7 +13,7 @@ namespace FPSCounter
 
         public FixedString(int strSize)
         {
-           value = new string(' ', strSize);
+            value = new string(' ', strSize);
             builder = new StringBuilder(strSize, strSize);
 
             var fields = typeof(StringBuilder).GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
@@ -44,8 +44,8 @@ namespace FPSCounter
                 CopyIntoString(value, charData, builder.Length);
             else
                 for (int i = builder.Length; i < builder.Capacity; i++)
-	                builder.Append((char)0);
-            }
+                    builder.Append((char)0);
+
             builder.Length = 0;
             return value;
         }

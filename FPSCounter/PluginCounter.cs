@@ -135,13 +135,13 @@ namespace FPSCounter
                     // TODO: .OrderByDescending allocates
                     foreach (var kvav in _sortedList.OrderByDescending(x => x.Value))
                     {
+                        if (c > 0) builder.Concat(", ");
                         builder.Concat(kvav.Key);
                         builder.Concat(": ");
                         builder.Concat(kvav.Value * msScale, 1);
                         builder.Concat("ms");
 
-                        if (c >= 5) break;
-                        c++;
+                        if (c++ >= 5) break;
                     }
                 }
                 else
