@@ -250,7 +250,7 @@ namespace FPSCounter
                     // Reuse the SB to reduce amount of created garbage
                     var _outputStringBuilder = fString.builder;
 
-                    _outputStringBuilder.Concat(fps, 1);
+                    _outputStringBuilder.Append(fps.ToString("00.00"));
                     _outputStringBuilder.Append(" FPS");
 
                     if (_showUnityMethodStats.Value)
@@ -268,21 +268,21 @@ namespace FPSCounter
                         // todo split into append calls to reduce GC pressure? low impact
                         //_outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
                         _outputStringBuilder.Append(", ");
-                        _outputStringBuilder.Concat(avgFrame * msScale, 1);
+                        _outputStringBuilder.Append((avgFrame * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nFixed: ");
-                        _outputStringBuilder.Concat(avgFixed * msScale, 1);
+                        _outputStringBuilder.Append((avgFixed * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nUpdate: ");
-                        _outputStringBuilder.Concat(avgUpdate * msScale, 1);
+                        _outputStringBuilder.Append((avgUpdate * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nYield/anim: ");
-                        _outputStringBuilder.Concat(avgYield * msScale, 1);
+                        _outputStringBuilder.Append((avgYield * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nLate: ");
-                        _outputStringBuilder.Concat(avgLate * msScale, 1);
+                        _outputStringBuilder.Append((avgLate * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nRender/VSync: ");
-                        _outputStringBuilder.Concat(avgRender * msScale, 1);
+                        _outputStringBuilder.Append((avgRender * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nOnGUI: ");
-                        _outputStringBuilder.Concat(avgGui * msScale, 1);
+                        _outputStringBuilder.Append((avgGui * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms\nOther: ");
-                        _outputStringBuilder.Concat(otherTicks * msScale, 1);
+                        _outputStringBuilder.Append((otherTicks * msScale).ToString("00.00"));
                         _outputStringBuilder.Append("ms");
                     }
 
