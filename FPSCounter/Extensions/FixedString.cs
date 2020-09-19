@@ -59,8 +59,8 @@ namespace FPSCounter
                 for (int i = 0; i < length; i++)
                     dest_fixed[i] = char_buffer[i];
                 // NULL terminate the dest string
-                if (length < dest_string.Length)
-                    dest_fixed[length] = (char)0;
+                for (int j = length; j < dest_string.Length; j++)
+                    dest_fixed[j] = (char)0;
             }
         }
 
