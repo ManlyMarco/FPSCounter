@@ -161,15 +161,13 @@ namespace FPSCounter
                 float remainder = Math.Abs(float_val - int_part);
 
                 // Multiply up to become an int that we can print
-                do
-                {
-                    remainder *= 10;
-                    decimal_places--;
-                }
-                while (decimal_places > 0);
-                
-                // All done, print that as an int!
-                string_builder.Concat((uint)remainder, 0, '0', 10);
+		do
+		{
+			remainder *= 10;
+			string_builder.Concat((uint)remainder % 10);
+			decimal_places--;
+		}
+		while (decimal_places > 0);
             }
             return string_builder;
         }
