@@ -1,5 +1,7 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using System.Text;
+using UnityEngine;
 
 namespace FPSCounter
 {
@@ -16,7 +18,7 @@ namespace FPSCounter
 
 
         // Setup fields
-        private readonly StringBuilder builder;
+        public readonly StringBuilder builder;
         private string rawStrValue;
         private readonly int definedSize;
         private readonly char[] charData;
