@@ -20,10 +20,14 @@ namespace FPSCounter
 
         private static bool _running;
         private static Action _stopAction;
-        private static FixedString _fString;
+        private static MutableString _fString;
+        private const int MAX_STRING_SIZE = 500;
         private const string NO_PLUGINS = "No slow plugins";
 
         public static string StringOutput { get; private set; }
+
+        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+        private static readonly KVPluginDataComparer _comparer = new KVPluginDataComparer();
 
         public static void Start(MonoBehaviour mb, BaseUnityPlugin thisPlugin)
         {
@@ -34,7 +38,7 @@ namespace FPSCounter
                 _harmonyInstance = new Harmony(FrameCounter.GUID);
 
             if (_fString == null)
-                _fString = new FixedString(500);
+                _fString = new MutableString(MAX_STRING_SIZE, true);
 
             var hookCount = 0;
 
@@ -104,13 +108,12 @@ namespace FPSCounter
             StringOutput = null;
         }
 
-        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+        
         private static IEnumerator CollectLoop()
         {
             var nanosecPerTick = 1000L * 1000L * 100L / Stopwatch.Frequency;
             var msScale = 1f / (nanosecPerTick * 1000f);
             var cutoffTicks = nanosecPerTick * 100;
-            var builder = _fString.builder;
 
             while (true)
             {
@@ -131,25 +134,20 @@ namespace FPSCounter
                 }
                 if (_sortedList.Count > 0)
                 {
-                    int c = 0;
-                    // TODO: .OrderByDescending allocates
-                    foreach (var kvav in _sortedList.OrderByDescending(x => x.Value))
+                    _sortedList.Sort(_comparer);
+                    int len = _sortedList.Count;
+                    for (int i = 0; i < len && i < 5; i++)
                     {
-                        if (c > 0) builder.Concat(", ");
-                        builder.Concat(kvav.Key);
-                        builder.Concat(": ");
-                        builder.Concat(kvav.Value * msScale, 1);
-                        builder.Concat("ms");
-
-                        if (c++ >= 5) break;
+                        var kvav = _sortedList[i];
+                        _fString.Append(kvav.Key).Append(": ").Append(kvav.Value * msScale, 1, 2).Append("ms, ");
                     }
                 }
                 else
                 {
-                    builder.Concat(NO_PLUGINS);
+                    _fString.Append(NO_PLUGINS);
                 }
 
-                StringOutput = _fString.PopValue();
+                StringOutput = PluginCounter._fString.Finalize();
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();
             }
