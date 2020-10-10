@@ -116,14 +116,13 @@ namespace FPSCounter
         #endregion
 
         #region UI
-        const int MAX_STRING_SIZE = 1400;
+        const int MAX_STRING_SIZE = 499;
 
         private static readonly GUIStyle _style = new GUIStyle();
         private static Rect _screenRect;
         private const int ScreenOffset = 10;
 
-        //private static StringBuilder _outputStringBuilder;
-        private static FixedString fString = new FixedString(MAX_STRING_SIZE);
+        private static MutableString fString = new MutableString(MAX_STRING_SIZE, true);
         private static string _frameOutputText;
 
 
@@ -208,6 +207,8 @@ namespace FPSCounter
             private static bool _onGuiHit;
 
             private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+            private static readonly KVPluginDataComparer _comparer = new KVPluginDataComparer();
+
             private IEnumerator Start()
             {
                 _measurementStopwatch = new Stopwatch();
@@ -247,11 +248,8 @@ namespace FPSCounter
                     var avgFrame = _frameTime.GetAverage();
                     var fps = 1000000f / (avgFrame / nanosecPerTick);
 
-                    // Reuse the SB to reduce amount of created garbage
-                    var _outputStringBuilder = fString.builder;
 
-                    _outputStringBuilder.Concat(fps, 1);
-                    _outputStringBuilder.Append(" FPS");
+                    fString.Append(fps, 2, 2).Append(" FPS");
 
                     if (_showUnityMethodStats.Value)
                     {
@@ -265,25 +263,16 @@ namespace FPSCounter
                         var totalCapturedTicks = avgFixed + avgUpdate + avgYield + avgLate + avgRender + avgGui;
                         var otherTicks = avgFrame - totalCapturedTicks;
 
-                        // todo split into append calls to reduce GC pressure? low impact
-                        //_outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
-                        _outputStringBuilder.Append(", ");
-                        _outputStringBuilder.Concat(avgFrame * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nFixed: ");
-                        _outputStringBuilder.Concat(avgFixed * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nUpdate: ");
-                        _outputStringBuilder.Concat(avgUpdate * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nYield/anim: ");
-                        _outputStringBuilder.Concat(avgYield * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nLate: ");
-                        _outputStringBuilder.Concat(avgLate * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nRender/VSync: ");
-                        _outputStringBuilder.Concat(avgRender * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nOnGUI: ");
-                        _outputStringBuilder.Concat(avgGui * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nOther: ");
-                        _outputStringBuilder.Concat(otherTicks * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms");
+                        // Print floats with 1 decimal precision i.e. XX.X and padding of 2,
+                        // meaning we assume we always get XX.X value
+                        fString.Append(", ").Append(avgFrame * msScale, 2, 2);
+                        fString.Append("ms\nFixed: ").Append(avgFixed * msScale, 2, 2);
+                        fString.Append("ms\nUpdate: ").Append(avgUpdate * msScale, 2, 2);
+                        fString.Append("ms\nYield/anim: ").Append(avgYield * msScale, 2, 2);
+                        fString.Append("ms\nLate: ").Append(avgLate * msScale, 2, 2);
+                        fString.Append("ms\nRender/VSync: ").Append(avgRender * msScale, 2, 2);
+                        fString.Append("ms\nOnGUI: ").Append(avgGui * msScale, 2, 2);
+                        fString.Append("ms\nOther: ").Append(otherTicks * msScale, 2, 2).Append("ms");
                     }
 
                     if (_measureMemory != null && _measureMemory.Value)
@@ -293,29 +282,20 @@ namespace FPSCounter
 
                         var memorystatus = MemoryInfo.QuerySystemMemStatus();
                         var freeMem = memorystatus.ullAvailPhys / 1024 / 1024;
-                        //var allMem = memorystatus.ullTotalPhys / 1024 / 1024;
 
-                        //_outputStringBuilder.Append($"\nRAM: {currentMem}MB used, {freeMem}MB free");
-                        _outputStringBuilder.Append("\nRAM: ");
-                        _outputStringBuilder.Concat(currentMem);
-                        _outputStringBuilder.Append("MB used, ");
-                        _outputStringBuilder.Concat(freeMem);
-                        _outputStringBuilder.Append("MB free");
+                        fString.Append("\nRAM: ").Append((uint)currentMem).Append("MB used, ");
+                        fString.Append((uint)freeMem).Append("MB free");
 
                         var totalGcMemBytes = GC.GetTotalMemory(false);
                         if (totalGcMemBytes != 0)
                         {
                             var gcDelta = totalGcMemBytes - gcPreviousAmount;
+                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
                             _gcAddedSize.Sample(gcDelta);
 
-                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
-                            //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
-                            _outputStringBuilder.Append("\nGC: ");
-                            _outputStringBuilder.Concat((int)totalGcMem);
-                            _outputStringBuilder.Append("MB (");
-                            _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024));
-                            _outputStringBuilder.Append("KB/s)");
-
+                            fString.Append("\nGC: ").Append((int)totalGcMem).Append("MB (");
+                            fString.Append(_gcAddedSize.GetAverageFloat() / 1024, 2, 4).Append("KB/s)");
+                            //fString.Append(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024)).Append("KB/s)");
 
                             gcPreviousAmount = totalGcMemBytes;
                         }
@@ -324,27 +304,36 @@ namespace FPSCounter
                         var gcGens = GC.MaxGeneration;
                         if (gcGens > 0)
                         {
-                            _outputStringBuilder.Append("\nGC hits:");
+                            fString.Append("\nGC hits:");
                             for (var g = 0; g < gcGens; g++)
                             {
                                 var collections = GC.CollectionCount(g);
-                                //_outputStringBuilder.Append($" {g}:{collections}");
-                                _outputStringBuilder.Append(" ");
-                                _outputStringBuilder.Concat(g);
-                                _outputStringBuilder.Append(":");
-                                _outputStringBuilder.Concat(collections);
+                                fString.Append(' ').Append(g).Append(':').Append(collections);
                             }
                         }
                     }
 
-                    if (PluginCounter.StringOutput != null)
+                    var plugList = PluginCounter.SlowPlugins;
+                    if (plugList != null)
                     {
-                        //_outputStringBuilder.AppendLine();
-                        _outputStringBuilder.Append("\n");
-                        _outputStringBuilder.Append(PluginCounter.StringOutput);
+                        if (plugList.Count > 0)
+                        {
+                            plugList.Sort(_comparer);
+                            int len = plugList.Count;
+                            for (int i = 0; i < len && i < 5; i++)
+                            {
+                                var kvav = plugList[i];
+                                var maxName = kvav.Key.Length > 20 ? 20 : kvav.Key.Length;
+                                fString.Append("\n[").Append(kvav.Key, 0, maxName).Append(": ").Append(kvav.Value * msScale, 1, 2).Append("ms]");
+                            }
+                        }
+                        else
+                        {
+                            fString.Append("\nNo slow plugins");
+                        }
                     }
 
-                    _frameOutputText = fString.PopValue();
+                    _frameOutputText = fString.Finalize();
                     _measurementStopwatch.Reset();
                 }
             }
@@ -390,7 +379,8 @@ namespace FPSCounter
                     _onGuiHit = true;
                 }
 
-                DrawCounter();
+                if (Event.current.type == EventType.Repaint)
+                    DrawCounter();
             }
 
             #endregion

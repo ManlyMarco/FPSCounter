@@ -17,24 +17,18 @@ namespace FPSCounter
         private static readonly Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>> _timers = new Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>>();
         private static List<KeyValuePair<string, long>> _sortedList;
         private static Harmony _harmonyInstance;
-
         private static bool _running;
         private static Action _stopAction;
-        private static FixedString _fString;
-        private const string NO_PLUGINS = "No slow plugins";
+        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
 
-        public static string StringOutput { get; private set; }
+        public static List<KeyValuePair<string, long>> SlowPlugins { get { return _sortedList; } }
 
         public static void Start(MonoBehaviour mb, BaseUnityPlugin thisPlugin)
         {
             if (_running) return;
             _running = true;
-
             if (_harmonyInstance == null)
                 _harmonyInstance = new Harmony(FrameCounter.GUID);
-
-            if (_fString == null)
-                _fString = new FixedString(500);
 
             var hookCount = 0;
 
@@ -79,9 +73,10 @@ namespace FPSCounter
                 }
             }
 
+            _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
+
             var co = mb.StartCoroutine(CollectLoop());
             _stopAction = () => mb.StopCoroutine(co);
-            _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
 
             FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods in {Chainloader.Plugins.Count} plugins");
         }
@@ -101,16 +96,15 @@ namespace FPSCounter
 
             _stopAction();
 
-            StringOutput = null;
+            _sortedList = null;
         }
 
-        private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+        
         private static IEnumerator CollectLoop()
         {
             var nanosecPerTick = 1000L * 1000L * 100L / Stopwatch.Frequency;
             var msScale = 1f / (nanosecPerTick * 1000f);
             var cutoffTicks = nanosecPerTick * 100;
-            var builder = _fString.builder;
 
             while (true)
             {
@@ -127,29 +121,9 @@ namespace FPSCounter
                     ma.Sample(tickSum);
                     var av = ma.GetAverage();
                     if (av > cutoffTicks)
-                        _sortedList.Add(new KeyValuePair<string, long>(kv.Key.GUID, av));
-                }
-                if (_sortedList.Count > 0)
-                {
-                    int c = 0;
-                    // TODO: .OrderByDescending allocates
-                    foreach (var kvav in _sortedList.OrderByDescending(x => x.Value))
-                    {
-                        if (c > 0) builder.Concat(", ");
-                        builder.Concat(kvav.Key);
-                        builder.Concat(": ");
-                        builder.Concat(kvav.Value * msScale, 1);
-                        builder.Concat("ms");
-
-                        if (c++ >= 5) break;
-                    }
-                }
-                else
-                {
-                    builder.Concat(NO_PLUGINS);
+                        _sortedList.Add(new KeyValuePair<string, long>(kv.Key.Name, av));
                 }
 
-                StringOutput = _fString.PopValue();
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();
             }
