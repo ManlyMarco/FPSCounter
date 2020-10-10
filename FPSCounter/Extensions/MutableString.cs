@@ -18,7 +18,7 @@ namespace FPSCounter
         // Setup fields
         private int m_Pos;
         private string m_valueStr;
-        private char m_defaultPadChar = ' ';
+        private char m_defaultPadChar = '0';
         private readonly bool dontThrow = false;
 
         // Publics

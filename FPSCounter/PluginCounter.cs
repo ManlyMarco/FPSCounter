@@ -17,28 +17,18 @@ namespace FPSCounter
         private static readonly Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>> _timers = new Dictionary<Type, KeyValuePair<BepInPlugin, Stopwatch>>();
         private static List<KeyValuePair<string, long>> _sortedList;
         private static Harmony _harmonyInstance;
-
         private static bool _running;
         private static Action _stopAction;
-        private static MutableString _fString;
-        private const int MAX_STRING_SIZE = 500;
-        private const string NO_PLUGINS = "No slow plugins";
-
-        public static string StringOutput { get; private set; }
-
         private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
-        private static readonly KVPluginDataComparer _comparer = new KVPluginDataComparer();
+
+        public static List<KeyValuePair<string, long>> SlowPlugins { get { return _sortedList; } }
 
         public static void Start(MonoBehaviour mb, BaseUnityPlugin thisPlugin)
         {
             if (_running) return;
             _running = true;
-
             if (_harmonyInstance == null)
                 _harmonyInstance = new Harmony(FrameCounter.GUID);
-
-            if (_fString == null)
-                _fString = new MutableString(MAX_STRING_SIZE, true);
 
             var hookCount = 0;
 
@@ -83,9 +73,10 @@ namespace FPSCounter
                 }
             }
 
+            _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
+
             var co = mb.StartCoroutine(CollectLoop());
             _stopAction = () => mb.StopCoroutine(co);
-            _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
 
             FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods in {Chainloader.Plugins.Count} plugins");
         }
@@ -105,7 +96,7 @@ namespace FPSCounter
 
             _stopAction();
 
-            StringOutput = null;
+            _sortedList = null;
         }
 
         
@@ -130,24 +121,9 @@ namespace FPSCounter
                     ma.Sample(tickSum);
                     var av = ma.GetAverage();
                     if (av > cutoffTicks)
-                        _sortedList.Add(new KeyValuePair<string, long>(kv.Key.GUID, av));
-                }
-                if (_sortedList.Count > 0)
-                {
-                    _sortedList.Sort(_comparer);
-                    int len = _sortedList.Count;
-                    for (int i = 0; i < len && i < 5; i++)
-                    {
-                        var kvav = _sortedList[i];
-                        _fString.Append(kvav.Key).Append(": ").Append(kvav.Value * msScale, 1, 2).Append("ms, ");
-                    }
-                }
-                else
-                {
-                    _fString.Append(NO_PLUGINS);
+                        _sortedList.Add(new KeyValuePair<string, long>(kv.Key.Name, av));
                 }
 
-                StringOutput = PluginCounter._fString.Finalize();
                 foreach (var timer in _timers)
                     timer.Value.Value.Reset();
             }

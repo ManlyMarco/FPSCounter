@@ -116,7 +116,7 @@ namespace FPSCounter
         #endregion
 
         #region UI
-        const int MAX_STRING_SIZE = 1400;
+        const int MAX_STRING_SIZE = 499;
 
         private static readonly GUIStyle _style = new GUIStyle();
         private static Rect _screenRect;
@@ -207,6 +207,8 @@ namespace FPSCounter
             private static bool _onGuiHit;
 
             private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+            private static readonly KVPluginDataComparer _comparer = new KVPluginDataComparer();
+
             private IEnumerator Start()
             {
                 _measurementStopwatch = new Stopwatch();
@@ -247,7 +249,7 @@ namespace FPSCounter
                     var fps = 1000000f / (avgFrame / nanosecPerTick);
 
 
-                    fString.Append(fps, 1, 2).Append(" FPS");
+                    fString.Append(fps, 2, 2).Append(" FPS");
 
                     if (_showUnityMethodStats.Value)
                     {
@@ -263,14 +265,14 @@ namespace FPSCounter
 
                         // Print floats with 1 decimal precision i.e. XX.X and padding of 2,
                         // meaning we assume we always get XX.X value
-                        fString.Append(", ").Append(avgFrame * msScale, 1, 2, '0');
-                        fString.Append("ms\nFixed: ").Append(avgFixed * msScale, 1, 2, '0');
-                        fString.Append("ms\nUpdate: ").Append(avgUpdate * msScale, 1, 2, '0');
-                        fString.Append("ms\nYield/anim: ").Append(avgYield * msScale, 1, 2, '0');
-                        fString.Append("ms\nLate: ").Append(avgLate * msScale, 1, 2, '0');
-                        fString.Append("ms\nRender/VSync: ").Append(avgRender * msScale, 1, 2, '0');
-                        fString.Append("ms\nOnGUI: ").Append(avgGui * msScale, 1, 2, '0');
-                        fString.Append("ms\nOther: ").Append(otherTicks * msScale, 1, 2, '0').Append("ms");
+                        fString.Append(", ").Append(avgFrame * msScale, 2, 2);
+                        fString.Append("ms\nFixed: ").Append(avgFixed * msScale, 2, 2);
+                        fString.Append("ms\nUpdate: ").Append(avgUpdate * msScale, 2, 2);
+                        fString.Append("ms\nYield/anim: ").Append(avgYield * msScale, 2, 2);
+                        fString.Append("ms\nLate: ").Append(avgLate * msScale, 2, 2);
+                        fString.Append("ms\nRender/VSync: ").Append(avgRender * msScale, 2, 2);
+                        fString.Append("ms\nOnGUI: ").Append(avgGui * msScale, 2, 2);
+                        fString.Append("ms\nOther: ").Append(otherTicks * msScale, 2, 2).Append("ms");
                     }
 
                     if (_measureMemory != null && _measureMemory.Value)
@@ -280,10 +282,9 @@ namespace FPSCounter
 
                         var memorystatus = MemoryInfo.QuerySystemMemStatus();
                         var freeMem = memorystatus.ullAvailPhys / 1024 / 1024;
-                        //var allMem = memorystatus.ullTotalPhys / 1024 / 1024;
 
-                        fString.Append("\nRAM: ").Append(currentMem).Append("MB used, ");
-                        fString.Append(freeMem).Append("MB free");
+                        fString.Append("\nRAM: ").Append((uint)currentMem).Append("MB used, ");
+                        fString.Append((uint)freeMem).Append("MB free");
 
                         var totalGcMemBytes = GC.GetTotalMemory(false);
                         if (totalGcMemBytes != 0)
@@ -291,10 +292,10 @@ namespace FPSCounter
                             var gcDelta = totalGcMemBytes - gcPreviousAmount;
                             var totalGcMem = totalGcMemBytes / 1024 / 1024;
                             _gcAddedSize.Sample(gcDelta);
-                            
+
                             fString.Append("\nGC: ").Append((int)totalGcMem).Append("MB (");
+                            fString.Append(_gcAddedSize.GetAverageFloat() / 1024, 2, 4).Append("KB/s)");
                             //fString.Append(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024)).Append("KB/s)");
-                            fString.Append(_gcAddedSize.GetAverageFloat() / 1024, 2, 2).Append("KB/s)");
 
                             gcPreviousAmount = totalGcMemBytes;
                         }
@@ -312,9 +313,24 @@ namespace FPSCounter
                         }
                     }
 
-                    if (PluginCounter.StringOutput != null)
+                    var plugList = PluginCounter.SlowPlugins;
+                    if (plugList != null)
                     {
-                        fString.Append("\n").Append(PluginCounter.StringOutput);
+                        if (plugList.Count > 0)
+                        {
+                            plugList.Sort(_comparer);
+                            int len = plugList.Count;
+                            for (int i = 0; i < len && i < 5; i++)
+                            {
+                                var kvav = plugList[i];
+                                var maxName = kvav.Key.Length > 20 ? 20 : kvav.Key.Length;
+                                fString.Append("\n[").Append(kvav.Key, 0, maxName).Append(": ").Append(kvav.Value * msScale, 1, 2).Append("ms]");
+                            }
+                        }
+                        else
+                        {
+                            fString.Append("\nNo slow plugins");
+                        }
                     }
 
                     _frameOutputText = fString.Finalize();
@@ -363,7 +379,8 @@ namespace FPSCounter
                     _onGuiHit = true;
                 }
 
-                DrawCounter();
+                if (Event.current.type == EventType.Repaint)
+                    DrawCounter();
             }
 
             #endregion
