@@ -42,7 +42,8 @@ namespace FPSCounter
                 if (procMem.WorkingSetSize <= 0 || memorystatus.ullTotalPhys <= 0)
                     throw new IOException("Empty data was returned");
 
-                _measureMemory = Config.Bind("General", "Show memory", true, "Show memory usage of the process, free available physical memory (if available).");
+                _measureMemory = Config.Bind("General", "Show memory", true, "Show memory usage of the process and free available physical memory (if available).");
+
             }
             catch (Exception ex)
             {
