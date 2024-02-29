@@ -22,6 +22,7 @@ namespace FPSCounter
         private static ConfigEntry<bool> _showPluginStats;
         private static ConfigEntry<bool> _showUnityMethodStats;
         private static ConfigEntry<bool> _measureMemory;
+        private static ConfigEntry<bool> _measureGC;
 
         internal static new ManualLogSource Logger;
 
@@ -41,13 +42,15 @@ namespace FPSCounter
                 if (procMem.WorkingSetSize <= 0 || memorystatus.ullTotalPhys <= 0)
                     throw new IOException("Empty data was returned");
 
-                _measureMemory = Config.Bind("General", "Show memory and GC stats", true,
-                    "Show memory usage of the process, free available physical memory and garbage collector statistics (if available).");
+                _measureMemory = Config.Bind("General", "Show memory", true, "Show memory usage of the process and free available physical memory (if available).");
+
             }
             catch (Exception ex)
             {
                 Logger.LogWarning("Memory statistics are not available - " + ex.Message);
             }
+
+            _measureGC = Config.Bind("General", "Show GC stats", true, "Show garbage collector statistics");
 
             _position = Config.Bind("Interface", "Screen position", TextAnchor.LowerRight, "Which corner of the screen to display the statistics in.");
             _counterColor = Config.Bind("Interface", "Color of the text", CounterColors.White, "Color of the displayed stats. Outline has a performance hit but it always easy to see.");
@@ -285,7 +288,10 @@ namespace FPSCounter
 
                         fString.Append("\nRAM: ").Append((uint)currentMem).Append("MB used, ");
                         fString.Append((uint)freeMem).Append("MB free");
+                    }
 
+                    if (_measureGC.Value)
+                    {
                         var totalGcMemBytes = GC.GetTotalMemory(false);
                         if (totalGcMemBytes != 0)
                         {
