@@ -38,8 +38,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="CounterColors.cs" />
-    <Compile Include="Extensions\KVPluginDataComparer.cs" />
-    <Compile Include="Extensions\MutableString.cs" />
+    <Compile Include="Extensions\FixedString.cs" />
+    <Compile Include="Extensions\StringBuilderFormat.cs" />
+    <Compile Include="Extensions\StringBuilderNumerics.cs" />
     <Compile Include="FPSCounter.cs" />
     <Compile Include="MemoryInfo.cs" />
     <Compile Include="MovingAverage.cs" />

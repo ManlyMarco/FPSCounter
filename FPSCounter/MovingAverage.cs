@@ -19,11 +19,6 @@ namespace FPSCounter
             return _sampleAccumulator / _samples.Count;
         }
 
-        public float GetAverageFloat()
-        {
-            return _sampleAccumulator / _samples.Count;
-        }
-
         public void Sample(long newSample)
         {
             _sampleAccumulator += newSample;
