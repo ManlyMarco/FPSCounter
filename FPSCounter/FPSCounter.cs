@@ -64,7 +64,9 @@ namespace FPSCounter
             };
             _showPluginStats.SettingChanged += (sender, args) => SetCapturingEnabled(_shown.Value);
 
-            OnEnable();
+            // Delay to avoid garbage data at startup and make sure other plugins
+            // finished loading and harmony patching (results in faster startup overall)
+            Invoke(nameof(OnEnable), 0.5f);
         }
 
         private void Update()
@@ -99,6 +101,7 @@ namespace FPSCounter
 
         private void OnEnable()
         {
+            // Check for null because this runs before Start
             if (_shown != null && _shown.Value)
             {
                 UpdateLooks();

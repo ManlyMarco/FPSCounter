@@ -30,6 +30,8 @@ namespace FPSCounter
             if (_running) return;
             _running = true;
 
+            var sw = Stopwatch.StartNew();
+
             if (_harmonyInstance == null)
                 _harmonyInstance = new Harmony(FrameCounter.GUID);
 
@@ -83,7 +85,7 @@ namespace FPSCounter
             _stopAction = () => mb.StopCoroutine(co);
             _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
 
-            FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods in {Chainloader.Plugins.Count} plugins");
+            FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods of {Chainloader.Plugins.Count} plugins in {sw.ElapsedMilliseconds}ms");
         }
 
         public static void Stop()
