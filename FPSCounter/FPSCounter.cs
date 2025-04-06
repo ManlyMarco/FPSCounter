@@ -12,7 +12,7 @@ namespace FPSCounter
     [BepInPlugin(GUID, "FPS Counter", Version)]
     public class FrameCounter : BaseUnityPlugin
     {
-        public const string Version = "3.1";
+        public const string Version = Constants.Version;
         public const string GUID = "MarC0.FPSCounter";
 
         private static ConfigEntry<KeyboardShortcut> _showCounter;
