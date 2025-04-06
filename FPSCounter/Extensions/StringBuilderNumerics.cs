@@ -21,7 +21,7 @@ namespace FPSCounter
         private static readonly char[] ms_digits = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
         private static readonly uint ms_default_decimal_places = 5; //< Matches standard .NET formatting dp's
-        private static readonly char ms_default_pad_char = ' ';
+        private static readonly char ms_default_pad_char = '\u2000'; //en quad, same width as a digit
 
         //! Convert a given unsigned integer value to a string and concatenate onto the stringbuilder. Any base value allowed.
         public static StringBuilder Concat(this StringBuilder string_builder, uint uint_val, uint pad_amount, char pad_char, uint base_val)

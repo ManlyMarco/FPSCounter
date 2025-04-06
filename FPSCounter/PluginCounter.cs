@@ -137,8 +137,8 @@ namespace FPSCounter
                     {
                         if (c > 0) builder.Concat(", ");
                         builder.Concat(kvav.Key);
-                        builder.Concat(": ");
-                        builder.Concat(kvav.Value * msScale, 1);
+                        builder.Concat(":");
+                        builder.Concat(kvav.Value * msScale, 1, 2);
                         builder.Concat("ms");
 
                         if (c++ >= 5) break;
