@@ -5,11 +5,11 @@ A BepInEx plugin that measures many performance statistics of Unity engine games
 - Measures time spent in each of the installed BepInEx plugins (easy to see performance hogs, only counts code running in Update methods)
 - Measures memory stats, including amount of heap memory used by the GC and GC collection counts (if supported)
 
-![preview](https://user-images.githubusercontent.com/39247311/77855748-c1764780-71f2-11ea-8e8e-0e9a35d9866b.png)
+![In-game preview](https://user-images.githubusercontent.com/39247311/77855748-c1764780-71f2-11ea-8e8e-0e9a35d9866b.png)
 
 ## How to use
-1. Install [BepInEx 5.0](https://github.com/BepInEx/BepInEx) or newer.
-2. Extract the release into your game root, the .dll should end up in BepInEx\plugins directory.
-3. Start the game and press U + LeftShift.
+1. Install the latest version of [BepInEx 5.x](https://github.com/BepInEx/BepInEx).
+2. Extract the release into your game root, the .dll should end up in the `BepInEx\plugins\FPSCounter` subdirectory.
+3. Start the game and press `U + LeftShift` (default hotkey).
 
-The on/off hotkey and looks can be configured in the config file in bepinex\config (have to run the game at least once to generate it), or by using [BepInEx.ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
+The on/off hotkey and looks can be configured in the config file `BepInEx\config\MarC0.FPSCounter.cfg` (you have to run the game at least once to generate it), or by using [BepInEx.ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager).
