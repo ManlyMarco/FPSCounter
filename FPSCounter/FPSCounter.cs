@@ -271,22 +271,22 @@ namespace FPSCounter
 
                         // todo split into append calls to reduce GC pressure? low impact
                         //_outputStringBuilder.Append($", {avgFrame * msScale,5:0.0}ms\nFixed: {avgFixed * msScale,5:0.0}ms\nUpdate: {avgUpdate * msScale,5:0.0}ms\nYield/anim: {avgYield * msScale,5:0.0}ms\nLate: {avgLate * msScale,5:0.0}ms\nRender/VSync: {avgRender * msScale,5:0.0}ms\nOnGUI: {avgGui * msScale,5:0.0}ms\nOther: {otherTicks * msScale,5:0.0}ms");
-                        _outputStringBuilder.Append(", ");
-                        _outputStringBuilder.Concat(avgFrame * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nFixed: ");
-                        _outputStringBuilder.Concat(avgFixed * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nUpdate: ");
-                        _outputStringBuilder.Concat(avgUpdate * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nYield/anim: ");
-                        _outputStringBuilder.Concat(avgYield * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nLate: ");
-                        _outputStringBuilder.Concat(avgLate * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nRender/VSync: ");
-                        _outputStringBuilder.Concat(avgRender * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nOnGUI: ");
-                        _outputStringBuilder.Concat(avgGui * msScale, 1, 2);
-                        _outputStringBuilder.Append("ms\nOther: ");
-                        _outputStringBuilder.Concat(otherTicks * msScale, 1, 2);
+                        _outputStringBuilder.Append(",");
+                        _outputStringBuilder.Concat(avgFrame * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nFixed:");
+                        _outputStringBuilder.Concat(avgFixed * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nUpdate:");
+                        _outputStringBuilder.Concat(avgUpdate * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nYield/anim:");
+                        _outputStringBuilder.Concat(avgYield * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nLate:");
+                        _outputStringBuilder.Concat(avgLate * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nRender/VSync:");
+                        _outputStringBuilder.Concat(avgRender * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nOnGUI:");
+                        _outputStringBuilder.Concat(avgGui * msScale, 1, 3);
+                        _outputStringBuilder.Append("ms\nOther/Frameskip:");
+                        _outputStringBuilder.Concat(otherTicks * msScale, 1, 3);
                         _outputStringBuilder.Append("ms");
                     }
 
@@ -301,9 +301,9 @@ namespace FPSCounter
 
                         //_outputStringBuilder.Append($"\nRAM: {currentMem}MB used, {freeMem}MB free");
                         _outputStringBuilder.Append("\nRAM: ");
-                        _outputStringBuilder.Concat(currentMem);
+                        _outputStringBuilder.Concat(currentMem, 3);
                         _outputStringBuilder.Append("MB used, ");
-                        _outputStringBuilder.Concat(freeMem);
+                        _outputStringBuilder.Concat(freeMem, 3);
                         _outputStringBuilder.Append("MB free");
 
                         if (_measureGC.Value)
@@ -316,11 +316,11 @@ namespace FPSCounter
 
                                 var totalGcMem = totalGcMemBytes / 1024 / 1024;
                                 //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
-                                _outputStringBuilder.Append("\nGC: ");
-                                _outputStringBuilder.Concat((int)totalGcMem);
-                                _outputStringBuilder.Append("MB (");
-                                _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024));
-                                _outputStringBuilder.Append("KB/s)");
+                                _outputStringBuilder.Append("\nGC:");
+                                _outputStringBuilder.Concat((int)totalGcMem, 4);
+                                _outputStringBuilder.Append("MB,");
+                                _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024), 5);
+                                _outputStringBuilder.Append("KB/s");
 
 
                                 gcPreviousAmount = totalGcMemBytes;
