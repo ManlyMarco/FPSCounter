@@ -220,7 +220,7 @@ namespace FPSCounter
                 var totalStopwatch = new Stopwatch();
                 var nanosecPerTick = (float)(1000 * 1000 * 100) / Stopwatch.Frequency;
                 var msScale = 1f / (nanosecPerTick * 1000f);
-                var gcPreviousAmount = 0L;
+                long gcPreviousAmount = 0, gcCollectionCount = 0;
 
                 while (true)
                 {
@@ -316,7 +316,10 @@ namespace FPSCounter
                         if (totalGcMemBytes != 0)
                         {
                             var gcDelta = totalGcMemBytes - gcPreviousAmount;
-                            _gcAddedSize.Sample(gcDelta);
+                            if (gcDelta >= 0)
+                                _gcAddedSize.Sample(gcDelta);
+                            else
+                                gcCollectionCount++;
 
                             var totalGcMem = totalGcMemBytes / 1024 / 1024;
                             //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
@@ -324,8 +327,9 @@ namespace FPSCounter
                             _outputStringBuilder.Concat((int)totalGcMem, 4);
                             _outputStringBuilder.Append("MB,");
                             _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024), 5);
-                            _outputStringBuilder.Append("KB/s");
-
+                            _outputStringBuilder.Append("KB/s, ");
+                            _outputStringBuilder.Concat(gcCollectionCount, 2);
+                            _outputStringBuilder.Append(" collects");
 
                             gcPreviousAmount = totalGcMemBytes;
                         }
