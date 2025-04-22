@@ -308,54 +308,54 @@ namespace FPSCounter
                         _outputStringBuilder.Append("MB used, ");
                         _outputStringBuilder.Concat(freeMem, 3);
                         _outputStringBuilder.Append("MB free");
-
-                        if (_measureGC.Value)
-                        {
-                            var totalGcMemBytes = GC.GetTotalMemory(false);
-                            if (totalGcMemBytes != 0)
-                            {
-                                var gcDelta = totalGcMemBytes - gcPreviousAmount;
-                                _gcAddedSize.Sample(gcDelta);
-
-                                var totalGcMem = totalGcMemBytes / 1024 / 1024;
-                                //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
-                                _outputStringBuilder.Append("\nGC:");
-                                _outputStringBuilder.Concat((int)totalGcMem, 4);
-                                _outputStringBuilder.Append("MB,");
-                                _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024), 5);
-                                _outputStringBuilder.Append("KB/s");
-
-
-                                gcPreviousAmount = totalGcMemBytes;
-                            }
-
-                            // Check if current GC supports generations
-                            var gcGens = GC.MaxGeneration;
-                            if (gcGens > 0)
-                            {
-                                _outputStringBuilder.Append("\nGC hits:");
-                                for (var g = 0; g < gcGens; g++)
-                                {
-                                    var collections = GC.CollectionCount(g);
-                                    //_outputStringBuilder.Append($" {g}:{collections}");
-                                    _outputStringBuilder.Append(" ");
-                                    _outputStringBuilder.Concat(g);
-                                    _outputStringBuilder.Append(":");
-                                    _outputStringBuilder.Concat(collections);
-                                }
-                            }
-                        }
-
-                        if (PluginCounter.StringOutput != null)
-                        {
-                            //_outputStringBuilder.AppendLine();
-                            _outputStringBuilder.Append("\n");
-                            _outputStringBuilder.Append(PluginCounter.StringOutput);
-                        }
-
-                        _frameOutputText = fString.PopValue();
-                        _measurementStopwatch.Reset();
                     }
+
+                    if (_measureGC.Value)
+                    {
+                        var totalGcMemBytes = GC.GetTotalMemory(false);
+                        if (totalGcMemBytes != 0)
+                        {
+                            var gcDelta = totalGcMemBytes - gcPreviousAmount;
+                            _gcAddedSize.Sample(gcDelta);
+
+                            var totalGcMem = totalGcMemBytes / 1024 / 1024;
+                            //_outputStringBuilder.Append($"\nGC: {totalGcMem}MB ({Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024):+0;-#}KB/s)");
+                            _outputStringBuilder.Append("\nGC:");
+                            _outputStringBuilder.Concat((int)totalGcMem, 4);
+                            _outputStringBuilder.Append("MB,");
+                            _outputStringBuilder.Concat(Mathf.RoundToInt(_gcAddedSize.GetAverage() * fps / 1024), 5);
+                            _outputStringBuilder.Append("KB/s");
+
+
+                            gcPreviousAmount = totalGcMemBytes;
+                        }
+
+                        // Check if current GC supports generations
+                        var gcGens = GC.MaxGeneration;
+                        if (gcGens > 0)
+                        {
+                            _outputStringBuilder.Append("\nGC hits:");
+                            for (var g = 0; g < gcGens; g++)
+                            {
+                                var collections = GC.CollectionCount(g);
+                                //_outputStringBuilder.Append($" {g}:{collections}");
+                                _outputStringBuilder.Append(" ");
+                                _outputStringBuilder.Concat(g);
+                                _outputStringBuilder.Append(":");
+                                _outputStringBuilder.Concat(collections);
+                            }
+                        }
+                    }
+
+                    if (PluginCounter.StringOutput != null)
+                    {
+                        //_outputStringBuilder.AppendLine();
+                        _outputStringBuilder.Append("\n");
+                        _outputStringBuilder.Append(PluginCounter.StringOutput);
+                    }
+
+                    _frameOutputText = fString.PopValue();
+                    _measurementStopwatch.Reset();
                 }
             }
 
