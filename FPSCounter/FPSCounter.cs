@@ -361,6 +361,7 @@ namespace FPSCounter
                     _frameOutputText = fString.PopValue();
                     _measurementStopwatch.Reset();
                 }
+                // ReSharper disable once IteratorNeverReturns
             }
 
             private void FixedUpdate()

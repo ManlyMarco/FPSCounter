@@ -2,20 +2,13 @@ using System;
 using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using BepInEx.Unity.IL2CPP;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
-using HarmonyLib;
 using Il2CppInterop.Runtime;
-using Il2CppInterop.Runtime.Injection;
 using UnityEngine;
-using UnityEngine.Assertions;
-using Debug = System.Diagnostics.Debug;
 
 namespace FPSCounter
 {
@@ -34,12 +27,12 @@ namespace FPSCounter
         private static ConfigEntry<bool> _measureMemory;
         private static ConfigEntry<bool> _measureGC;
 
-        internal static new ManualLogSource Logger;
+        internal static ManualLogSource Logger;
         internal static FrameCounterComponent ComponentInstance;
 
         public override void Load()
         {
-            Logger = base.Log;
+            Logger = Log;
 
             _showCounter = Config.Bind("General", "Toggle counter and reset stats", new KeyboardShortcut(KeyCode.U, KeyCode.LeftShift), "Key to enable and disable the plugin.");
             _shown = Config.Bind("General", "Enable", false, "Monitor performance statistics and show them on the screen. When disabled the plugin has no effect on performance.");
@@ -87,8 +80,8 @@ namespace FPSCounter
             static FrameCounterComponent()
             {
                 _helperTypes = new Il2CppSystem.Type[2];
-                _helperTypes[0] = Il2CppType.From(Il2CppUtils.AddIl2CppAttributeToClass<FrameCounterHelper, DefaultExecutionOrder>(new Type[]{typeof(int)}, new object[]{int.MinValue}, true));
-                _helperTypes[1] = Il2CppType.From(Il2CppUtils.AddIl2CppAttributeToClass<FrameCounterHelper.FrameCounterHelper2, DefaultExecutionOrder>(new Type[]{typeof(int)}, new object[]{int.MaxValue}, true));
+                _helperTypes[0] = Il2CppType.From(Il2CppUtils.AddIl2CppAttributeToClass<FrameCounterHelper, DefaultExecutionOrder>(new[]{typeof(int)}, new object[]{int.MinValue}));
+                _helperTypes[1] = Il2CppType.From(Il2CppUtils.AddIl2CppAttributeToClass<FrameCounterHelper.FrameCounterHelper2, DefaultExecutionOrder>(new[]{typeof(int)}, new object[]{int.MaxValue}));
             }
 
             private void Update()
@@ -236,6 +229,8 @@ namespace FPSCounter
                 private static bool _onGuiHit;
 
                 private static readonly WaitForEndOfFrame _waitForEndOfFrame = new WaitForEndOfFrame();
+
+                // ReSharper disable once Unity.IncorrectMethodSignature
                 private Il2CppSystem.Collections.IEnumerator Start() => DoWorkCo().WrapToIl2Cpp();
                 private IEnumerator DoWorkCo()
                 {
@@ -384,6 +379,7 @@ namespace FPSCounter
                         _frameOutputText = fString.PopValue();
                         _measurementStopwatch.Reset();
                     }
+                    // ReSharper disable once IteratorNeverReturns
                 }
 
                 private void FixedUpdate()
