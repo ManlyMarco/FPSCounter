@@ -178,7 +178,7 @@ namespace FPSCounter
             /// Code that actually captures the frame times
             /// int.MinValue makes all events on this script execute first in the scene
             /// </summary>
-            // [DefaultExecutionOrder(int.MinValue)]]
+            // [DefaultExecutionOrder(int.MinValue)] Cannot do this in IL2CPP, add the attribute dynamically at runtime instead 
             public class FrameCounterHelper : MonoBehaviour
             {
                 #region Measurements
@@ -402,6 +402,7 @@ namespace FPSCounter
                 /// Needed to measure LateUpdate, int.MaxValue makes it run as the last LateUpdate call in scene.
                 /// It's the last possible time to do it without listening for render events on a Camera, which is less reliable
                 /// </summary>
+                // [DefaultExecutionOrder(int.MaxValue)] Cannot do this in IL2CPP, add the attribute dynamically at runtime instead 
                 public class FrameCounterHelper2 : MonoBehaviour
                 {
                     private void LateUpdate()
