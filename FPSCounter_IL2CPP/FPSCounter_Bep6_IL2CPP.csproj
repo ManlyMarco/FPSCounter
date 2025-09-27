@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<AssemblyName>FPSCounter_IL2CPP</AssemblyName>
+		<OutputPath>..\bin\BepInEx6_IL2CPP\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BepInEx.KeyboardShortcut.IL2CPP" Version="18.4.1">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.738">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="IllusionLibs.HoneyCome.Il2Cppmscorlib" Version="2023.99.12.15">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="IllusionLibs.HoneyCome.UnityEngine" Version="2021.3.14.3">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="IllusionLibs.HoneyCome.UnityEngine.UI" Version="2021.3.14.3">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<Import Project="..\FPSCounter_Shared\FPSCounter_Shared.projitems" Label="Shared" />
+</Project>

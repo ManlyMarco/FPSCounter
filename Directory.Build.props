@@ -12,6 +12,14 @@
 		<!-- Sets the 'File description' field on the dll file -->
 		<AssemblyTitle>BepInEx plugin that shows performance and memory statistics</AssemblyTitle>
 
+		<RootNamespace>FPSCounter</RootNamespace>
+
+		<OutputType>Library</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<PluginSubDir>BepInEx\plugins\FPSCounter</PluginSubDir>
+
 		<Deterministic>true</Deterministic>
 		<DebugSymbols>true</DebugSymbols>
 		<DebugType>embedded</DebugType>
@@ -26,6 +34,14 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+	
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<Optimize>True</Optimize>
+	</PropertyGroup>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Delete Files="$(OutputPath)\$(AssemblyName).deps.json" />
+	</Target>
 
 	<!-- Create a release zip file (after successful Release build) -->
 	<Target Name="CreateReleaseZip" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
@@ -39,7 +55,7 @@
 		<RemoveDir Directories="$(CopyDir)" />
 		<Copy DestinationFolder="$(CopyDir)\$(PluginSubDir)\%(RecursiveDir)" SourceFiles="@(BuildFiles)" />
 		<!-- https://learn.microsoft.com/en-us/visualstudio/msbuild/zipdirectory-task?view=vs-2022 -->
-		<ZipDirectory SourceDirectory="$(CopyDir)" DestinationFile="$(OutputPath)\..\$(AssemblyName)_v$(Version).zip" Overwrite="true" />
+		<ZipDirectory SourceDirectory="$(CopyDir)" DestinationFile="$(OutputPath)\..\$(MSBuildProjectName)_v$(Version).zip" Overwrite="true" />
 		<RemoveDir Directories="$(CopyDir)" />
 	</Target>
 

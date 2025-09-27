@@ -93,7 +93,7 @@ namespace FPSCounter
                 if (_helpers[1] == null) _helpers[1] = gameObject.AddComponent<FrameCounterHelper.FrameCounterHelper2>();
 
                 if (_showPluginStats.Value)
-                    PluginCounter.Start(_helpers[0], this);
+                    PluginCounter.Start(_helpers[0], GUID);
                 else
                     PluginCounter.Stop();
             }

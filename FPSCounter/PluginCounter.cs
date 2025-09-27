@@ -25,7 +25,7 @@ namespace FPSCounter
 
         public static string StringOutput { get; private set; }
 
-        public static void Start(MonoBehaviour mb, BaseUnityPlugin thisPlugin)
+        public static void Start(MonoBehaviour mb, string thisPluginGuid)
         {
             if (_running) return;
             _running = true;
@@ -39,15 +39,19 @@ namespace FPSCounter
                 _fString = new FixedString(500);
 
             var hookCount = 0;
+            var pluginCount = 0;
 
             // Hook unity event methods on all plugins
             var baseType = typeof(MonoBehaviour);
             var unityMethods = new[] { "FixedUpdate", "Update", "LateUpdate", "OnGUI" };
-            foreach (var baseUnityPlugin in Chainloader.Plugins.Where(x => x != null && x != thisPlugin))
+            foreach (var baseUnityPlugin in Chainloader.PluginInfos.Where(x => x.Key != thisPluginGuid).Select(x => x.Value))
             {
+                if (baseUnityPlugin.Instance == null) continue;
+                pluginCount++;
+
                 var timer = new Stopwatch();
 
-                var pluginBehaviours = SafeGetTypes(baseUnityPlugin.GetType().Assembly).Where(x => baseType.IsAssignableFrom(x) && !x.IsAbstract).ToList();
+                var pluginBehaviours = SafeGetTypes(baseUnityPlugin.Instance.GetType().Assembly).Where(x => baseType.IsAssignableFrom(x) && !x.IsAbstract).ToList();
                 foreach (var pluginBehaviour in pluginBehaviours)
                 {
                     foreach (var unityMethod in unityMethods)
@@ -57,7 +61,7 @@ namespace FPSCounter
 
                         if (!_timers.ContainsKey(pluginBehaviour))
                         {
-                            var bepInPlugin = baseUnityPlugin.Info.Metadata;
+                            var bepInPlugin = baseUnityPlugin.Metadata;
                             _timers[pluginBehaviour] = new KeyValuePair<BepInPlugin, Stopwatch>(bepInPlugin, timer);
 
                             if (!_averages.TryGetValue(bepInPlugin, out var kvp))
@@ -85,14 +89,14 @@ namespace FPSCounter
             _stopAction = () => mb.StopCoroutine(co);
             _sortedList = new List<KeyValuePair<string, long>>(_averages.Count);
 
-            FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods of {Chainloader.Plugins.Count} plugins in {sw.ElapsedMilliseconds}ms");
+            FrameCounter.Logger.LogDebug($"Attached timers to {hookCount} unity methods of {pluginCount} plugins in {sw.ElapsedMilliseconds}ms");
         }
 
         public static void Stop()
         {
             if (!_running) return;
 
-            _harmonyInstance.UnpatchAll(_harmonyInstance.Id);
+            _harmonyInstance.UnpatchSelf();
 
             _running = false;
 

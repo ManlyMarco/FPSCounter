@@ -3,13 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35707.178
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPSCounter", "FPSCounter\FPSCounter.csproj", "{6ABE432C-893F-4837-AA83-B3D909FA8012}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPSCounter_Bep5", "FPSCounter\FPSCounter_Bep5.csproj", "{6ABE432C-893F-4837-AA83-B3D909FA8012}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_Solution", "_Solution", "{7029E031-3167-4458-A735-479689C9B92F}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FPSCounter_Bep6_IL2CPP", "FPSCounter_IL2CPP\FPSCounter_Bep6_IL2CPP.csproj", "{35E40C2A-2A1E-4DB4-B5D4-31CF12B5A0E1}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "FPSCounter_Shared", "FPSCounter_Shared\FPSCounter_Shared.shproj", "{B3BD9213-70A9-474E-AFD3-9B8939A8C708}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,11 +25,20 @@ Global
 		{6ABE432C-893F-4837-AA83-B3D909FA8012}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ABE432C-893F-4837-AA83-B3D909FA8012}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ABE432C-893F-4837-AA83-B3D909FA8012}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35E40C2A-2A1E-4DB4-B5D4-31CF12B5A0E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35E40C2A-2A1E-4DB4-B5D4-31CF12B5A0E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35E40C2A-2A1E-4DB4-B5D4-31CF12B5A0E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35E40C2A-2A1E-4DB4-B5D4-31CF12B5A0E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2B6E6427-2A51-4918-B102-0E9D2E0FE4B4}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		FPSCounter_Shared\FPSCounter_Shared.projitems*{35e40c2a-2a1e-4db4-b5d4-31cf12b5a0e1}*SharedItemsImports = 5
+		FPSCounter_Shared\FPSCounter_Shared.projitems*{6abe432c-893f-4837-aa83-b3d909fa8012}*SharedItemsImports = 5
+		FPSCounter_Shared\FPSCounter_Shared.projitems*{b3bd9213-70a9-474e-afd3-9b8939a8c708}*SharedItemsImports = 13
 	EndGlobalSection
 EndGlobal

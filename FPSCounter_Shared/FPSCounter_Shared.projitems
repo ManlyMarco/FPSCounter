@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>b3bd9213-70a9-474e-afd3-9b8939a8c708</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>FPSCounter</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CounterColors.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\FixedString.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderFormat.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderNumerics.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MemoryInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MovingAverage.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ShadowAndOutline.cs" />
+  </ItemGroup>
+</Project>

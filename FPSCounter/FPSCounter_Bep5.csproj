@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net35</TargetFramework>
+		<AssemblyName>FPSCounter</AssemblyName>
+		<OutputPath>..\bin\BepInEx5\</OutputPath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="IllusionLibs.BepInEx" Version="5.4.12">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="IllusionLibs.PlayHome.UnityEngine" Version="5.5.5.4">
+			<IncludeAssets>compile</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<Import Project="..\FPSCounter_Shared\FPSCounter_Shared.projitems" Label="Shared" />
+</Project>
