@@ -6,11 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="BepInEx.KeyboardShortcut.IL2CPP" Version="18.4.1">
-			<IncludeAssets>compile</IncludeAssets>
-			<PrivateAssets>all</PrivateAssets>
-		</PackageReference>
-		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.738">
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.785">
 			<IncludeAssets>compile</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
